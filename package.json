@@ -1,0 +1,9 @@
+{
+  "name": "levelup-pathfinder",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && . .venv/bin/activate && uvicorn app.main:app --reload --reload-dir app --port 8000",
+    "build": "npm --prefix frontend run build"
+  }
+}
