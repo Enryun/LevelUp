@@ -13,22 +13,77 @@ Hackathon starter for an action-oriented AI career engine built with React and F
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+cp .env.example .env
 uvicorn app.main:app --reload --reload-dir app --port 8000
 ```
 
+Add your OpenAI key to `backend/.env` before calling AI endpoints.
+
 Health check: http://localhost:8000/health
 Dashboard API: http://localhost:8000/api/dashboard
+Chat API: http://localhost:8000/api/chat
+CV text extraction API: http://localhost:8000/api/cv/extract-text
+
+Example chat request:
+
+```json
+{
+  "message": "What should I do next?",
+  "context": {
+    "target_role": "Junior Backend Engineer",
+    "skills": ["Python", "FastAPI"]
+  }
+}
+```
+
+Example chat response:
+
+```json
+{
+  "reply": "Human-readable combined answer.",
+  "model": "gpt-5.4-mini",
+  "summary": "One sentence directly answering the user.",
+  "next_action": "Exactly one concrete action.",
+  "reason": "Why this action is the best next step.",
+  "follow_up_question": null
+}
+```
+
+Example CV text extraction request:
+
+```bash
+curl -X POST http://localhost:8000/api/cv/extract-text \
+  -F "file=@/path/to/cv.pdf"
+```
+
+Example CV text extraction response:
+
+```json
+{
+  "filename": "cv.pdf",
+  "text": "Raw extracted text from the PDF...",
+  "page_count": 2
+}
+```
 
 ## Frontend
 
 ```bash
 cd frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
 App: http://localhost:5173
+
+Set the backend URL in `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
 
 ## Root Scripts
 
