@@ -441,12 +441,15 @@
 
 .assessment-page .questions-list {
   display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
   gap: 14px;
 }
 
 .assessment-page .question-card,
 .assessment-page .result-card {
   display: grid;
+  width: 100%;
   gap: 14px;
   padding: 20px;
   border: 1px solid #e5ded3;
@@ -668,6 +671,216 @@
 
 .assessment-page .cv-text-preview h3 {
   border-bottom-color: #e5ded3;
+}
+
+/* ── Job Positions Section ─────────────────────────────────────────── */
+
+.assessment-page .job-positions-section {
+  display: grid;
+  gap: 24px;
+  padding: 32px;
+  border: 1px solid #e5ded3;
+  border-radius: 28px;
+  background: #fbfaf7;
+}
+
+.assessment-page .jobs-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7a6a58;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.assessment-page .job-error-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.assessment-page .job-cards-list {
+  display: grid;
+  gap: 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.assessment-page .job-card {
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  border: 1px solid #e5ded3;
+  border-radius: 20px;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.assessment-page .job-card:hover {
+  border-color: #ffd182;
+  box-shadow: 0 4px 20px rgba(255, 173, 49, 0.10);
+}
+
+.assessment-page .job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.assessment-page .job-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #171e31;
+  margin: 0 0 4px;
+}
+
+.assessment-page .job-company {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #7a6a58;
+  margin: 0 0 6px;
+}
+
+.assessment-page .job-salary {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #2a7d4f;
+  background: #edf7f1;
+  border: 1px solid #b8e4cc;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.assessment-page .job-number {
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #b0a090;
+  min-width: 32px;
+  text-align: right;
+}
+
+.assessment-page .job-description {
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: #4a4038;
+  margin: 0;
+}
+
+.assessment-page .job-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assessment-page .job-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.assessment-page .job-site-link {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #7a6a58;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 4px 12px;
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  background: #f7f4ef;
+  transition: border-color 0.18s, color 0.18s, background 0.18s;
+}
+
+.assessment-page .job-site-link:hover {
+  border-color: #ffd182;
+  color: #5c3d00;
+  background: #fff8eb;
+}
+
+.assessment-page .job-keyword {
+  font-size: 0.78125rem;
+  font-weight: 600;
+  color: #5c3d00;
+  background: #fff8eb;
+  border: 1px solid #ffd182;
+  border-radius: 999px;
+  padding: 3px 10px;
+  letter-spacing: 0.01em;
+}
+
+.assessment-page .modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 30, 49, 0.4);
+  backdrop-filter: blur(8px);
+}
+
+.assessment-page .modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 860px;
+  max-height: calc(100svh - 48px);
+  background: #fbfaf7;
+  border: 1px solid #e5ded3;
+  border-radius: 32px;
+  box-shadow: 0 32px 84px rgba(23, 30, 49, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modal-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.assessment-page .close-dialog-button {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 10;
+  width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #e5ded3;
+  border-radius: 50%;
+  color: #171e31;
+  background: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(23, 30, 49, 0.05);
+}
+
+.assessment-page .close-dialog-button:hover {
+  background: #fbf4ea;
+  border-color: #ffd182;
+  color: #7a4b00;
+}
+
+.assessment-page .dialog-scroll-area {
+  padding: 40px;
+  overflow-y: auto;
+  display: grid;
+  gap: 32px;
 }
 
 @media (max-width: 760px) {

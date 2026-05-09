@@ -9,6 +9,7 @@ from openai import AuthenticationError, OpenAIError
 from app.config import settings
 from app.cv_parser import extract_pdf_text
 from app.database import get_latest_roadmap, init_db
+from app.job_search import search_jobs
 from app.openai_agent import run_chat_agent
 from app.roadmap_agent import generate_and_save_roadmap
 from app.schemas import (
@@ -16,6 +17,8 @@ from app.schemas import (
     ChatResponse,
     CvTextResponse,
     Dashboard,
+    JobSearchRequest,
+    JobSearchResponse,
     MicroInterview,
     RoadmapGenerateRequest,
     RoadmapNode,
@@ -216,3 +219,11 @@ def latest_roadmap(email: str) -> RoadmapResponse:
         raise HTTPException(status_code=404, detail="No saved roadmap found for this email.")
 
     return roadmap
+
+
+@app.post("/api/jobs/search", response_model=JobSearchResponse)
+async def job_search(request: JobSearchRequest) -> JobSearchResponse:
+    try:
+        return await search_jobs(request.target_role)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error

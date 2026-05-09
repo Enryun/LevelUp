@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
-import { AlertCircle, CheckCircle2, FileText, Loader2, Upload } from 'lucide-react'
+import { AlertCircle, ArrowRight, CheckCircle2, FileText, Loader2, Upload } from 'lucide-react'
 import { apiUrl } from '../../config'
 import './UploadCv.css'
 
@@ -19,6 +19,7 @@ export type CvExtractResponse = {
 type UploadCvProps = {
   onExtract?: (cv: CvExtractResponse) => void
   onClear?: () => void
+  onNext?: () => void
 }
 
 function formatFileSize(size: number) {
@@ -26,7 +27,7 @@ function formatFileSize(size: number) {
   return `${megabytes.toFixed(1)} MB`
 }
 
-export function UploadCv({ onExtract, onClear }: UploadCvProps) {
+export function UploadCv({ onExtract, onClear, onNext }: UploadCvProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState('')
@@ -73,6 +74,11 @@ export function UploadCv({ onExtract, onClear }: UploadCvProps) {
   }
 
   const handleAnalyze = async () => {
+    if (uploadState === 'ready' && onNext) {
+      onNext()
+      return
+    }
+
     if (!file) {
       setError('Choose a CV before starting analysis.')
       return
@@ -187,6 +193,11 @@ export function UploadCv({ onExtract, onClear }: UploadCvProps) {
             <>
               <Loader2 size={18} className="spin" />
               Analyzing CV
+            </>
+          ) : uploadState === 'ready' ? (
+            <>
+              Start micro-interview
+              <ArrowRight size={18} />
             </>
           ) : (
             <>
