@@ -11,6 +11,7 @@ import './LandingPage.css'
 
 type LandingPageProps = {
   onStart: () => void
+  onPlans: () => void
 }
 
 const stats = [
@@ -77,10 +78,15 @@ const testimonials = [
   },
 ]
 
-export function LandingPage({ onStart }: LandingPageProps) {
+export function LandingPage({ onStart, onPlans }: LandingPageProps) {
   function handleStart(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
     onStart()
+  }
+
+  function handlePlans(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault()
+    onPlans()
   }
 
   return (
@@ -91,10 +97,15 @@ export function LandingPage({ onStart }: LandingPageProps) {
             <span className="brand-mark">L</span>
             <span>LevelUp AI</span>
           </a>
-          <a className="nav-cta" href="/assessment" onClick={handleStart}>
-            Get started
-            <ArrowRight size={18} />
-          </a>
+          <div className="nav-links">
+            <a className="nav-link" href="/plans" onClick={handlePlans}>
+              Plans
+            </a>
+            <a className="nav-cta" href="/assessment" onClick={handleStart}>
+              Get started
+              <ArrowRight size={18} />
+            </a>
+          </div>
         </nav>
 
         <div className="hero-content" id="get-started">
