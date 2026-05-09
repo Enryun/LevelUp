@@ -23,6 +23,46 @@ type RoadmapNode = {
   tasks: string[]
 }
 
+type DetailedRoadmapNode = {
+  id: string
+  title: string
+  category:
+    | 'foundation'
+    | 'hard_skill'
+    | 'soft_skill'
+    | 'portfolio'
+    | 'english'
+    | 'certification'
+    | 'internship'
+    | 'application'
+    | 'interview'
+  status: 'done' | 'active' | 'next'
+  description: string
+  tasks: string[]
+  resources: string[]
+  estimated_time: string
+  depends_on: string[]
+}
+
+type DetailedRoadmapPhase = {
+  id: string
+  title: string
+  timeframe: string
+  goal: string
+  nodes: DetailedRoadmapNode[]
+}
+
+type DetailedRoadmap = {
+  headline: string
+  timeline: string
+  phases: DetailedRoadmapPhase[]
+  suggested_projects: string[]
+  english_targets: string[]
+  certifications: string[]
+  portfolio_actions: string[]
+  internship_actions: string[]
+}
+
 type Dashboard = {
   target_role: string
   readiness_score: number
@@ -37,6 +77,7 @@ type RoadmapResponse = Dashboard & {
   created_at: string
   cv_summary: string
   interview_summary: string
+  detailed_roadmap: DetailedRoadmap | null
 }
 
 type StarBreakdown = {
@@ -88,9 +129,12 @@ type JobSearchResponse = {
 
 type AssessmentPageProps = {
   onBack: () => void
+  onOpenRoadmap: () => void
 }
 
 type OnboardingStep = 'upload' | 'interview' | 'match' | 'roadmap'
+
+const ROADMAP_SESSION_KEY = 'levelup.latestRoadmap'
 
 const fallbackDashboard: Dashboard = {
   target_role: 'Junior Software Engineer',
@@ -144,7 +188,7 @@ function isEmailReady(email: string) {
   return trimmed.includes('@') && trimmed.split('@')[1]?.includes('.')
 }
 
-export function AssessmentPage({ onBack }: AssessmentPageProps) {
+export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
   const [dashboard, setDashboard] = useState<Dashboard>(fallbackDashboard)
   const [apiState, setApiState] = useState<'loading' | 'connected' | 'offline'>('loading')
   const [email, setEmail] = useState('')
@@ -326,6 +370,7 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
       }
 
       const generated = (await response.json()) as RoadmapResponse
+      sessionStorage.setItem(ROADMAP_SESSION_KEY, JSON.stringify(generated))
       setDashboard(generated)
       setTargetRole(generated.target_role)
       setLatestRoadmap(generated)
@@ -404,6 +449,7 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
           return
         }
         setLatestRoadmap(data)
+        sessionStorage.setItem(ROADMAP_SESSION_KEY, JSON.stringify(data))
         setDashboard(data)
         setTargetRole(data.target_role)
         setRoadmapState((current) => (current === 'saving' ? current : 'ready'))
@@ -587,6 +633,15 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
                     onClick={() => setIsRoadmapDialogOpen(true)}
                   >
                     View roadmap
+                  </button>
+                )}
+                {latestRoadmap?.detailed_roadmap && (
+                  <button
+                    type="button"
+                    className="action-button secondary"
+                    onClick={onOpenRoadmap}
+                  >
+                    Open detailed roadmap
                   </button>
                 )}
                 <button
@@ -845,9 +900,19 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
                     <p className="eyebrow">Next action</p>
                     <h2>{dashboard.next_action}</h2>
                   </div>
-                  <button type="button" className="start-button" aria-label="Start next action">
-                    <Play size={18} fill="currentColor" />
-                  </button>
+                  {latestRoadmap?.detailed_roadmap ? (
+                    <button
+                      type="button"
+                      className="action-button"
+                      onClick={onOpenRoadmap}
+                    >
+                      Open detailed roadmap
+                    </button>
+                  ) : (
+                    <button type="button" className="start-button" aria-label="Start next action">
+                      <Play size={18} fill="currentColor" />
+                    </button>
+                  )}
                 </section>
 
                 <section className="roadmap-section">
