@@ -14,6 +14,8 @@
 
 .landing-nav,
 .landing-brand,
+.nav-links,
+.nav-link,
 .nav-cta,
 .hero-pill,
 .hero-button,
@@ -41,6 +43,21 @@
   color: #171e31;
   font-weight: 800;
   text-decoration: none;
+}
+
+.nav-links {
+  gap: 18px;
+}
+
+.nav-link {
+  color: #626a79;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.nav-link:hover,
+.nav-cta:hover {
+  color: #171e31;
 }
 
 .brand-mark {
