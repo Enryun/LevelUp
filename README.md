@@ -1,479 +1,217 @@
-# LevelUp / Pathfinder AI
+# LevelUp AI
 
-Hackathon starter for an action-oriented AI career engine built with React and FastAPI.
+LevelUp AI helps students and early-career candidates turn an unclear career goal into a concrete execution plan.
+
+The product starts with a CV, asks a short role-specific micro-interview, measures skill fit, finds relevant jobs, and generates a personalized roadmap with learning actions. On the roadmap, users can open task-level free YouTube course suggestions powered by TinyFish search and AI summaries.
+
+The core idea is simple: students do not need more generic advice. They need a system that understands where they are, shows what is missing, and gives them the next practical step.
+
+## Why It Exists
+
+Students often know they should "build projects", "improve their CV", or "prepare for interviews", but those instructions are too broad to act on. LevelUp narrows the problem:
+
+- What role are you aiming for?
+- What does your CV already prove?
+- What soft-skill signals show up in your interview answers?
+- Which jobs match your current profile?
+- What should you learn or build next?
+
+Instead of handing users a static checklist, LevelUp creates a roadmap from their actual profile and keeps the plan tied to job readiness.
+
+## Product Flow
+
+1. Upload a CV
+   The backend extracts text from a PDF and uses it as career evidence.
+
+2. Complete a micro-interview
+   The app asks role-specific soft-skill questions and scores answers with STAR-style signals.
+
+3. Review skill match
+   Users see how their answers map to the target role and can search matching job positions.
+
+4. Generate a personalized roadmap
+   The AI creates phases, tasks, estimated timing, dependencies, and career-prep actions.
+
+5. Learn from free resources
+   Each roadmap task can request 3 to 5 free YouTube course suggestions using TinyFish search, then AI summarizes why each link is relevant.
+
+## What It Does Today
+
+- CV PDF text extraction
+- AI chat assistant endpoint
+- AI-generated micro-interview questions
+- Soft-skill match scoring
+- Job search using TinyFish and structured AI extraction
+- Detailed roadmap generation and persistence
+- Roadmap graph view
+- Free YouTube course suggestions for roadmap tasks
+- Subscription and landing pages for the product shell
+
+## Architecture
+
+```text
+frontend/
+  React + TypeScript + Vite app
+  Assessment flow, roadmap graph, landing page, subscription page
+
+backend/
+  FastAPI service
+  CV parsing, AI orchestration, job search, course search, roadmap storage
+```
+
+The backend uses:
+
+- FastAPI for API routes
+- OpenAI for structured reasoning and summaries
+- TinyFish Search API for job and YouTube discovery
+- SQLite for saved roadmap state
+- pypdf for CV text extraction
+
+The frontend uses:
+
+- React
+- TypeScript
+- Vite
+- lucide-react icons
 
 ## Prerequisites
 
 - Node.js 20+
 - Python 3.13+
+- An OpenAI API key for AI endpoints
 
-## Backend
+## Setup
+
+Install root tooling:
+
+```bash
+npm install
+```
+
+Set up the backend:
 
 ```bash
 cd backend
 python3.13 -m venv .venv
 source .venv/bin/activate
-python -c "import sys; raise SystemExit('Python 3.13+ is required') if sys.version_info < (3, 13) else None"
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload --reload-dir app --port 8000
 ```
 
-Add your OpenAI key to `backend/.env` before calling AI endpoints.
+Add your OpenAI key to `backend/.env`:
 
-Health check: http://localhost:8000/health
-Dashboard API: http://localhost:8000/api/dashboard
-Chat API: http://localhost:8000/api/chat
-CV text extraction API: http://localhost:8000/api/cv/extract-text
-
-Example chat request:
-
-```json
-{
-  "message": "What should I do next?",
-  "context": {
-    "target_role": "Junior Backend Engineer",
-    "skills": ["Python", "FastAPI"]
-  }
-}
+```env
+OPENAI_API_KEY=your_key_here
 ```
 
-Example chat response:
+Set up the frontend:
 
-```json
-{
-  "reply": "Human-readable combined answer.",
-  "model": "gpt-5.4-mini",
-  "summary": "One sentence directly answering the user.",
-  "next_action": "Exactly one concrete action.",
-  "reason": "Why this action is the best next step.",
-  "follow_up_question": null
-}
+```bash
+cd frontend
+npm install
+cp .env.example .env
 ```
 
-Example CV text extraction request:
+Use the local backend URL in `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+## Run Locally
+
+From the repo root:
+
+```bash
+npm run dev
+```
+
+Or run each side separately:
+
+```bash
+npm run dev:backend
+npm run dev:frontend
+```
+
+Default URLs:
+
+- Frontend: http://localhost:5173
+- Backend: http://localhost:8000
+- Health check: http://localhost:8000/health
+
+## Useful API Endpoints
+
+```text
+GET  /health
+GET  /api/dashboard
+POST /api/chat
+POST /api/cv/extract-text
+GET  /api/onboard-soft-skills/micro-interview
+POST /api/jobs/search
+POST /api/roadmaps/generate
+GET  /api/roadmaps/latest
+POST /api/courses/search
+```
+
+Example CV extraction:
 
 ```bash
 curl -X POST http://localhost:8000/api/cv/extract-text \
   -F "file=@/path/to/cv.pdf"
 ```
 
-Example CV text extraction response:
-
-```json
-{
-  "filename": "cv.pdf",
-  "text": "Raw extracted text from the PDF...",
-  "page_count": 2
-}
-```
-
-## Frontend
+Example course search:
 
 ```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
+curl -X POST http://localhost:8000/api/courses/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "keyword": "Build a simple app or feature in Kotlin or Flutter",
+    "target_role": "Software Engineer"
+  }'
 ```
 
-App: http://localhost:5173
-
-Set the backend URL in `frontend/.env`:
-
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
-
-## Root Scripts
-
-After dependencies are installed:
+## Build
 
 ```bash
-npm run dev
-npm run dev:backend
-npm run dev:frontend
 npm run build
 ```
 
-## Project Shape
+This runs the frontend TypeScript and Vite production build.
 
-- `frontend/`: React + TypeScript + Vite client.
-- `backend/`: FastAPI service for parsing, AI orchestration, roadmap generation, and progress state.
+## Product Philosophy
 
-# IDEA
+LevelUp is not trying to be a general chatbot. It is designed to feel like a career operating system for students:
 
-## Overview
+- diagnostic enough to understand the user
+- practical enough to create next actions
+- adaptive enough to change as the user progresses
+- grounded enough to connect learning tasks to real jobs
 
-AI Buddy is an AI-powered career guidance and planning platform designed to help students discover their strengths, understand their career direction, and build a realistic path toward their goals.
+The focus is execution, not inspiration.
 
-Instead of providing generic advice, AI Buddy acts as a personalized career companion that deeply understands each student and generates adaptive execution roadmaps tailored to their unique situation.
+## Roadmap Ideas
 
----
+- Progress tracking for roadmap tasks
+- Calendar-style weekly missions
+- Better saved roadmap history
+- Interview simulation with feedback
+- Portfolio and GitHub review
+- Mentor or coach handoff
+- Scholarship and internship discovery
+- More localized job-market intelligence
 
-# Vision
+## Success Metrics
 
-Help students move from confusion and uncertainty to clarity, confidence, and actionable direction.
+- Onboarding completion rate
+- Roadmap generation rate
+- Weekly active users
+- Course suggestion click-through
+- Portfolio completion
+- Internship or job outcomes
+- User confidence before and after onboarding
 
-AI Buddy aims to become:
-- a mentor
-- a strategist
-- a planning assistant
-- an accountability partner
-- a long-term career companion
+## One-Sentence Summary
 
----
-
-# Problem Statement
-
-Many students struggle with:
-- unclear career direction
-- information overload
-- lack of mentorship
-- unrealistic expectations
-- poor planning
-- lack of consistency
-- uncertainty about their strengths and weaknesses
-
-Most existing platforms provide generic recommendations rather than personalized guidance.
-
-AI Buddy solves this by building a deep understanding of the student before generating a career roadmap.
-
----
-
-# Core Concept
-
-The platform first learns about the student:
-- who they are
-- what they want
-- what they already have
-- what they are missing
-- their strengths
-- their weaknesses
-- their learning style
-- their constraints
-
-Then AI Buddy generates:
-- career recommendations
-- gap analysis
-- personalized learning plans
-- milestone tracking
-- adaptive progress adjustments
-
----
-
-# Target Audience
-
-## Primary Audience
-- High school students
-- University students
-- Fresh graduates
-- Career switchers
-
-## Secondary Audience
-- Parents
-- Career coaches
-- Educational institutions
-
----
-
-# Key Features
-
-## 1. AI Discovery Session
-
-The AI asks adaptive questions to deeply understand the student.
-
-### Information Collected
-- education background
-- current skills
-- career interests
-- strengths
-- weaknesses
-- available resources
-- financial constraints
-- personality type
-- learning style
-- long-term goals
-
----
-
-## 2. Career Match Analysis
-
-AI Buddy analyzes:
-- interests
-- strengths
-- personality
-- learning behavior
-
-Then recommends suitable career paths.
-
-### Example
-- iOS Developer
-- Product Designer
-- Data Analyst
-- AI Engineer
-- UI/UX Designer
-- Product Manager
-
----
-
-## 3. Gap Analysis
-
-The system identifies missing skills between:
-- current state
-- desired career goal
-
-### Example
-Goal: Become an iOS Developer
-
-Missing:
-- Swift fundamentals
-- Git/GitHub
-- portfolio projects
-- networking knowledge
-- interview preparation
-
----
-
-## 4. Personalized Roadmap
-
-AI Buddy generates a structured roadmap.
-
-### Example
-
-#### Phase 1 — Foundation
-- Learn Swift basics
-- Build mini projects
-- Practice daily coding
-
-#### Phase 2 — Portfolio
-- Build production-level app
-- Create GitHub portfolio
-- Learn Firebase integration
-
-#### Phase 3 — Career Preparation
-- Resume creation
-- LinkedIn optimization
-- Mock interviews
-- Job applications
-
----
-
-## 5. Adaptive Planning
-
-Roadmaps are dynamic and adjustable.
-
-The AI adapts based on:
-- progress
-- missed goals
-- burnout
-- schedule changes
-- motivation level
-
-### Example
-"You missed several weekly goals. Let's reduce workload and focus on smaller milestones."
-
----
-
-## 6. Weekly Missions
-
-Instead of overwhelming users with large goals, AI Buddy creates:
-- weekly tasks
-- daily objectives
-- progress checkpoints
-- streak systems
-
----
-
-## 7. Skill Tracking Dashboard
-
-Visual representation of:
-- current skill levels
-- missing competencies
-- progress over time
-- roadmap completion
-
----
-
-## 8. AI Career Simulation
-
-Students can explore realistic career insights:
-- day in the life
-- expected salary progression
-- work environment
-- required technical skills
-- growth opportunities
-
----
-
-## 9. Portfolio & Resume Assistant
-
-AI Buddy helps students:
-- generate project ideas
-- improve resumes
-- optimize LinkedIn profiles
-- review GitHub repositories
-- prepare for interviews
-
----
-
-# User Journey
-
-## Step 1 — Onboarding
-Student creates profile.
-
-## Step 2 — Discovery Session
-AI asks personalized questions.
-
-## Step 3 — Career Direction
-AI suggests suitable career paths.
-
-## Step 4 — Goal Selection
-Student selects target direction.
-
-## Step 5 — Roadmap Generation
-AI creates personalized execution plan.
-
-## Step 6 — Weekly Progress
-Student tracks progress and receives adaptive guidance.
-
----
-
-# Product Philosophy
-
-AI Buddy is not just a chatbot.
-
-It is designed to feel like:
-- a mentor
-- a strategic planner
-- an accountability partner
-- a supportive career coach
-
-The focus is execution, not just inspiration.
-
----
-
-# MVP Scope
-
-## Initial MVP Features
-- onboarding questionnaire
-- AI profile analysis
-- career recommendation engine
-- roadmap generation
-- weekly progress tracking
-
----
-
-# Future Expansion
-
-## Potential Future Features
-- mentor marketplace
-- internship matching
-- AI interview simulation
-- university recommendation system
-- collaborative study groups
-- AI-powered portfolio reviews
-- scholarship recommendations
-- AI emotional support companion
-
----
-
-# Technical Direction
-
-## Frontend
-- SwiftUI (iOS)
-- Next.js / React (Web)
-
-## Backend
-- Firebase
-- Supabase
-- Node.js
-
-## AI Layer
-- OpenAI APIs
-- Vector embeddings
-- recommendation engine
-- memory system
-
----
-
-# Monetization
-
-## Free Tier
-- basic roadmap generation
-- limited AI conversations
-
-## Premium Tier
-- unlimited AI mentorship
-- advanced roadmap customization
-- interview preparation
-- portfolio analysis
-- personalized career simulations
-
----
-
-# Brand Positioning
-
-## Tagline Ideas
-
-### Option 1
-"Your AI career mentor."
-
-### Option 2
-"From confusion to clear direction."
-
-### Option 3
-"Personalized career roadmaps powered by AI."
-
-### Option 4
-"Discover your path. Build your future."
-
----
-
-# Competitive Advantage
-
-The core differentiation is personalization.
-
-Most platforms provide:
-- generic advice
-- static roadmaps
-- broad recommendations
-
-AI Buddy provides:
-- deep understanding
-- adaptive planning
-- realistic execution systems
-- long-term personalized guidance
-
----
-
-# Success Metrics
-
-## User Metrics
-- onboarding completion rate
-- weekly active users
-- roadmap completion rate
-- retention rate
-- user satisfaction score
-
-## Outcome Metrics
-- internships obtained
-- portfolio completion
-- job placement
-- skill progression
-- goal achievement rate
-
----
-
-# Final Summary
-
-AI Buddy is an AI-powered career companion that helps students:
-- understand themselves
-- discover suitable career paths
-- identify skill gaps
-- create actionable plans
-- stay accountable
-- continuously adapt and improve
-
-The mission is to transform uncertainty into structured progress and help students confidently move toward their future careers.
+LevelUp AI turns a student's CV, goals, and interview signals into a personalized career roadmap with job matches and free learning resources.
