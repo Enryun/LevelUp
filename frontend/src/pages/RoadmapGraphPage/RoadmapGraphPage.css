@@ -20,7 +20,9 @@
 .graph-score,
 .node-topline,
 .node-status,
-.node-time {
+.node-time,
+.task-row,
+.course-suggestions.loading {
   display: flex;
   align-items: center;
 }
@@ -175,7 +177,7 @@
 
 .phase-heading p,
 .phase-heading h2,
-.phase-heading span {
+.phase-heading > div > span {
   margin: 0;
 }
 
@@ -195,7 +197,7 @@
   overflow-wrap: anywhere;
 }
 
-.phase-heading span {
+.phase-heading > div > span {
   display: block;
   margin-top: 6px;
   color: #687080;
@@ -313,6 +315,123 @@
   font-size: 14px;
   line-height: 1.45;
   overflow-wrap: anywhere;
+}
+
+.graph-node .node-task-list {
+  gap: 10px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.node-task-list > li {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.task-row {
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.task-row span {
+  min-width: 0;
+}
+
+.task-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  border: 1px solid #ffd182;
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #5c3d00;
+  background: #fff8eb;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.course-suggestions {
+  display: grid;
+  gap: 8px;
+  border: 1px solid #e5ded3;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fbfaf7;
+}
+
+.course-suggestions.loading {
+  gap: 8px;
+  color: #7a4b00;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.course-suggestions.error {
+  color: #be123c;
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.course-suggestions > a {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid #e5ded3;
+  border-radius: 8px;
+  padding: 10px 34px 10px 10px;
+  color: inherit;
+  background: #ffffff;
+  text-decoration: none;
+}
+
+.course-suggestions > a > div {
+  display: grid;
+  gap: 3px;
+}
+
+.course-suggestions strong {
+  color: #172033;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.course-suggestions span,
+.course-suggestions small {
+  color: #7a4b00;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.course-suggestions p {
+  margin: 0;
+  color: #5d6675;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.course-suggestions svg:not(.spin) {
+  position: absolute;
+  top: 11px;
+  right: 10px;
+  color: #ffad31;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .node-resources {

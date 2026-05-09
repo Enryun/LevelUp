@@ -230,3 +230,38 @@ class JobSearchResponse(BaseModel):
 
 class JobSearchRequest(BaseModel):
     target_role: str = Field(..., min_length=2, max_length=120)
+
+
+class CourseSuggestion(BaseModel):
+    title: str
+    channel: str | None = None
+    url: str
+    summary: str
+    why_relevant: str
+
+
+class CourseSearchRequest(BaseModel):
+    keyword: str = Field(..., min_length=2, max_length=160)
+    target_role: str | None = Field(default=None, max_length=120)
+
+    @field_validator("keyword")
+    @classmethod
+    def keyword_must_have_text(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("keyword must not be blank")
+        return stripped
+
+    @field_validator("target_role")
+    @classmethod
+    def blank_target_role_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
+
+
+class CourseSearchResponse(BaseModel):
+    keyword: str
+    target_role: str | None = None
+    courses: list[CourseSuggestion] = Field(..., min_length=0, max_length=5)

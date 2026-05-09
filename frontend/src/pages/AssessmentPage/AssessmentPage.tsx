@@ -481,20 +481,6 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
       </nav>
 
       <div className="assessment-content">
-        <section className="hero-panel">
-          <div>
-            <p className="eyebrow">Pathway to {targetRole || dashboard.target_role}</p>
-            <h1>{dashboard.readiness_score}% market ready</h1>
-            <p className="hero-copy">
-              Turn academic projects into a hiring playbook with focused hard-skill
-              and soft-skill milestones.
-            </p>
-          </div>
-          <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
-            <span>{dashboard.readiness_score}%</span>
-          </div>
-        </section>
-
         <section className="onboarding-progress" aria-label="Onboarding progress">
           {onboardingSteps.map((step, index) => (
             <span
