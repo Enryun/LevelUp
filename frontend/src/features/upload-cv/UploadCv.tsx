@@ -1,17 +1,20 @@
 import { useRef, useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { AlertCircle, CheckCircle2, FileText, Loader2, Upload } from 'lucide-react'
+import { apiUrl } from '../../config'
 import './UploadCv.css'
 
-const allowedFileTypes = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-]
+const allowedFileTypes = ['application/pdf']
 
 const maxFileSizeInBytes = 8 * 1024 * 1024
 
 type UploadState = 'idle' | 'selected' | 'analyzing' | 'ready'
+
+type CvExtractResponse = {
+  filename: string
+  text: string
+  page_count: number
+}
 
 function formatFileSize(size: number) {
   const megabytes = size / (1024 * 1024)
@@ -23,6 +26,7 @@ export function UploadCv() {
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState('')
   const [uploadState, setUploadState] = useState<UploadState>('idle')
+  const [extractedCv, setExtractedCv] = useState<CvExtractResponse | null>(null)
 
   const validateAndSelectFile = (nextFile?: File) => {
     if (!nextFile) {
@@ -32,19 +36,22 @@ export function UploadCv() {
     if (!allowedFileTypes.includes(nextFile.type)) {
       setFile(null)
       setUploadState('idle')
-      setError('Please upload a PDF, DOC, or DOCX file.')
+      setExtractedCv(null)
+      setError('Please upload a PDF file.')
       return
     }
 
     if (nextFile.size > maxFileSizeInBytes) {
       setFile(null)
       setUploadState('idle')
+      setExtractedCv(null)
       setError('Please upload a CV smaller than 8 MB.')
       return
     }
 
     setFile(nextFile)
     setError('')
+    setExtractedCv(null)
     setUploadState('selected')
   }
 
@@ -65,15 +72,30 @@ export function UploadCv() {
 
     setError('')
     setUploadState('analyzing')
+    setExtractedCv(null)
 
     const formData = new FormData()
-    formData.append('cv', file)
+    formData.append('file', file)
 
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, 1200)
-    })
+    try {
+      const response = await fetch(apiUrl('/api/cv/extract-text'), {
+        method: 'POST',
+        body: formData,
+      })
 
-    setUploadState('ready')
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.detail ?? 'CV extraction failed.')
+      }
+
+      const payload = (await response.json()) as CvExtractResponse
+
+      setExtractedCv(payload)
+      setUploadState('ready')
+    } catch (error) {
+      setUploadState('selected')
+      setError(error instanceof Error ? error.message : 'CV extraction failed.')
+    }
   }
 
   return (
@@ -96,7 +118,7 @@ export function UploadCv() {
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.doc,.docx"
+          accept=".pdf,application/pdf"
           onChange={handleFileChange}
           className="file-input"
         />
@@ -110,7 +132,7 @@ export function UploadCv() {
           <p>
             {file
               ? `${formatFileSize(file.size)} selected`
-              : 'PDF, DOC, or DOCX up to 8 MB'}
+              : 'PDF up to 8 MB'}
           </p>
         </div>
 
@@ -133,7 +155,15 @@ export function UploadCv() {
       {uploadState === 'ready' && (
         <div className="upload-message success">
           <CheckCircle2 size={18} />
-          CV staged. Backend extraction and AI analysis will run from this upload.
+          Extracted {extractedCv?.page_count ?? 0} page
+          {extractedCv?.page_count === 1 ? '' : 's'} from {extractedCv?.filename}.
+        </div>
+      )}
+
+      {extractedCv && (
+        <div className="cv-text-preview">
+          <h3>Raw CV text</h3>
+          <pre>{extractedCv.text || 'No selectable text found in this PDF.'}</pre>
         </div>
       )}
 

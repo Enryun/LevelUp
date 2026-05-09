@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, CircleDot, FileUp, MessageSquareText, Play, Route } from 'lucide-react'
+import { apiUrl } from './config'
 import { UploadCv } from './features/upload-cv/UploadCv'
 import './App.css'
 
@@ -53,7 +54,7 @@ function App() {
   const [isUploadOpen, setIsUploadOpen] = useState(false)
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/dashboard')
+    fetch(apiUrl('/api/dashboard'))
       .then((response) => {
         if (!response.ok) {
           throw new Error('Dashboard request failed')
