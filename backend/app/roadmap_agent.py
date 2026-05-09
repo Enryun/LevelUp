@@ -27,15 +27,18 @@ def _build_roadmap_agent() -> Agent:
             "\n"
             "Output rules:\n"
             "- readiness_score must be an integer from 0 to 100.\n"
-            "- roadmap must contain 3 to 5 nodes.\n"
-            "- Each roadmap node must use only these tracks: audit, hard_skill, soft_skill.\n"
-            "- Each roadmap node must use only these statuses: done, active, next.\n"
+            "- roadmap must contain 3 to 5 concise summary nodes for the popup.\n"
+            "- detailed_roadmap must contain 3 to 5 phases for a graph-like roadmap page.\n"
+            "- detailed_roadmap phases should cover foundation, portfolio, career preparation, and applications.\n"
+            "- detailed_roadmap nodes must be dependency-aware: depends_on ids must reference earlier nodes only.\n"
+            "- Include concrete skill gaps, projects, portfolio evidence, English targets, certifications when useful, internships, interview prep, and application milestones.\n"
+            "- Use semester/month-oriented timeframes such as 'Month 1-2', 'Semester 1', or 'Weeks 1-4'.\n"
+            "- Every detailed node needs a short description, 2 to 5 tasks, estimated_time, resources, and a clear category.\n"
             "- Use done only for completed evidence already visible in the CV or questionnaire.\n"
-            "- Use active for the highest-priority current improvement area.\n"
-            "- Use next for later improvements.\n"
-            "- Each node must include 2 to 4 concrete tasks the user can actually do.\n"
+            "- Use active for the highest-priority current improvement area, and next for later improvements.\n"
             "- next_action must be exactly one concrete action that can be started today.\n"
             "- cv_summary and interview_summary must be concise and must not include raw pasted CV text.\n"
+            "- suggested_projects, portfolio_actions, and internship_actions must be specific enough to act on this week.\n"
             "- Do not invent degrees, employers, projects, skills, scores, or constraints that are not present."
         ),
     )
@@ -46,7 +49,8 @@ def _format_roadmap_input(request: RoadmapGenerateRequest) -> str:
 
     return (
         "Generate a personalized job-readiness roadmap from this payload.\n"
-        "The full CV text is provided for analysis only. Summarize it; do not reproduce it.\n\n"
+        "The full CV text is provided for analysis only. Summarize it; do not reproduce it.\n"
+        "Return both a concise popup roadmap and a detailed graph roadmap suitable for a roadmap.sh-style visual page.\n\n"
         f"{json.dumps(payload, ensure_ascii=False, indent=2)}"
     )
 
