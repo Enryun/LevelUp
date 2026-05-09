@@ -5,14 +5,15 @@ Hackathon starter for an action-oriented AI career engine built with React and F
 ## Prerequisites
 
 - Node.js 20+
-- Python 3.11+
+- Python 3.13+
 
 ## Backend
 
 ```bash
 cd backend
-python3 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
+python -c "import sys; raise SystemExit('Python 3.13+ is required') if sys.version_info < (3, 13) else None"
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 cp .env.example .env
