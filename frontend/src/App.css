@@ -11,7 +11,15 @@
 .next-action,
 .start-button,
 .roadmap-node,
-.node-icon {
+.node-icon,
+.interview-heading,
+.interview-score,
+.question-header,
+.black-box-score,
+.answer-option,
+.star-grid,
+.interview-summary,
+.skill-tag {
   display: flex;
   align-items: center;
 }
@@ -131,6 +139,12 @@ button {
   background: #e5f3ef;
 }
 
+.action-button.secondary.active {
+  color: #ffffff;
+  background: #0f766e;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
 .next-action {
   justify-content: space-between;
   gap: 18px;
@@ -160,6 +174,197 @@ button {
 
 .roadmap-section {
   padding-top: 10px;
+}
+
+.micro-interview {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.interview-heading,
+.question-header,
+.interview-summary {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.interview-score,
+.black-box-score {
+  gap: 8px;
+  min-width: max-content;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #0f766e;
+  background: #ecfdf5;
+  font-weight: 800;
+}
+
+.skill-match-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.skill-match-panel h3,
+.question-card h3,
+.result-card h3,
+.interview-summary h3 {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 20px;
+}
+
+.skill-match-panel p,
+.question-why,
+.interview-summary p {
+  margin: 10px 0 0;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-content: start;
+}
+
+.skill-tag {
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: var(--text-strong);
+  background: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.skill-tag strong {
+  color: #0f766e;
+}
+
+.questions-list {
+  display: grid;
+  gap: 14px;
+}
+
+.question-card,
+.result-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+
+.question-prompt {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.answer-options {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-option {
+  position: relative;
+  gap: 12px;
+  min-height: 58px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text);
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.answer-option.selected {
+  border-color: #14b8a6;
+  background: #f0fdfa;
+}
+
+.answer-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.option-label {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #111827;
+  font-weight: 900;
+}
+
+.answer-option strong {
+  margin-left: auto;
+  color: #0f766e;
+  white-space: nowrap;
+}
+
+.star-grid {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.star-grid span {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #334155;
+  background: #eef2f7;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.open-answer {
+  display: grid;
+  gap: 8px;
+  color: var(--text-strong);
+  font-weight: 800;
+}
+
+.open-answer textarea {
+  min-height: 86px;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--text-strong);
+  background: #fbfdff;
+  font: inherit;
+  font-weight: 500;
+}
+
+.open-answer textarea:focus {
+  outline: 3px solid #99f6e4;
+  outline-offset: 1px;
+}
+
+.interview-summary {
+  border-left: 4px solid #111827;
+  border-radius: 8px;
+  padding: 18px;
+  background: #f8fafc;
 }
 
 .roadmap {
@@ -223,8 +428,24 @@ button {
   }
 
   .actions-grid,
-  .next-action {
+  .next-action,
+  .interview-heading,
+  .question-header,
+  .interview-summary {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .skill-match-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .answer-option {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .answer-option strong {
+    margin-left: 0;
   }
 }
