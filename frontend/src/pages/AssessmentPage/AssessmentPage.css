@@ -1,0 +1,558 @@
+.assessment-page {
+  width: 100%;
+  min-height: 100svh;
+  padding: 32px 0 72px;
+  color: #171e31;
+  background:
+    radial-gradient(circle at 82% 4%, rgba(255, 209, 130, 0.5), transparent 30%),
+    linear-gradient(180deg, #fbfaf7 0%, #fff6df 42%, #fbfaf7 100%);
+}
+
+.assessment-page > * {
+  width: min(1120px, calc(100% - 40px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.assessment-page .topbar,
+.assessment-page .brand,
+.assessment-page .back-button,
+.assessment-page .actions-grid,
+.assessment-page .action-button,
+.assessment-page .next-action,
+.assessment-page .start-button,
+.assessment-page .roadmap-node,
+.assessment-page .node-icon,
+.assessment-page .interview-heading,
+.assessment-page .interview-score,
+.assessment-page .question-header,
+.assessment-page .black-box-score,
+.assessment-page .answer-option,
+.assessment-page .star-grid,
+.assessment-page .interview-summary,
+.assessment-page .skill-tag {
+  display: flex;
+  align-items: center;
+}
+
+.assessment-page .topbar {
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+  border: 1px solid #e9e2d6;
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.76);
+  backdrop-filter: blur(16px);
+}
+
+.assessment-page .brand {
+  gap: 10px;
+  color: #171e31;
+  font-weight: 900;
+}
+
+.assessment-page .back-button {
+  gap: 8px;
+  justify-content: center;
+  min-height: 38px;
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #171e31;
+  background: #fff;
+}
+
+.assessment-page .api-pill {
+  min-width: 86px;
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #687080;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.assessment-page .api-pill.connected {
+  color: #7a4b00;
+  border-color: #ffd182;
+  background: #fff1dc;
+}
+
+.assessment-page .api-pill.offline {
+  color: #9f1239;
+  border-color: #fecdd3;
+  background: #fff1f2;
+}
+
+.assessment-page .hero-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 32px;
+  align-items: center;
+  padding: 44px;
+  border: 12px solid #171e31;
+  border-radius: 32px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(23, 30, 49, 0.12);
+}
+
+.assessment-page .eyebrow,
+.assessment-page .track {
+  margin: 0 0 8px;
+  color: #ffad31;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.assessment-page h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #171e31;
+  font-size: clamp(42px, 6vw, 72px);
+  line-height: 0.98;
+}
+
+.assessment-page .hero-copy {
+  max-width: 620px;
+  margin: 20px 0 0;
+  color: #687080;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.assessment-page .score-ring {
+  width: 184px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  justify-self: end;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, white 0 58%, transparent 59%),
+    conic-gradient(#ffad31 0 65%, #eee8df 65% 100%);
+}
+
+.assessment-page .score-ring span {
+  color: #171e31;
+  font-size: 34px;
+  font-weight: 800;
+}
+
+.assessment-page .actions-grid {
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.assessment-page button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.assessment-page .action-button {
+  gap: 10px;
+  justify-content: center;
+  min-height: 52px;
+  padding: 12px 22px;
+  color: #171e31;
+  background: linear-gradient(180deg, #ffbd4d, #ffad31);
+  box-shadow: 0 14px 34px rgba(255, 173, 49, 0.22);
+  font-weight: 900;
+}
+
+.assessment-page .action-button.secondary {
+  border: 1px solid #e5ded3;
+  color: #171e31;
+  background: #ffffff;
+  box-shadow: none;
+}
+
+.assessment-page .action-button.secondary.active {
+  border-color: #171e31;
+  color: #ffffff;
+  background: #171e31;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.22);
+}
+
+.assessment-page .next-action {
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 24px;
+  border: 1px solid #e5ded3;
+  border-left: 6px solid #ffad31;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 18px 48px rgba(23, 30, 49, 0.08);
+}
+
+.assessment-page .next-action h2,
+.assessment-page .section-heading h2 {
+  margin: 0;
+  color: #171e31;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.assessment-page .start-button {
+  width: 48px;
+  min-width: 48px;
+  justify-content: center;
+  color: #171e31;
+  background: #ffad31;
+}
+
+.assessment-page .roadmap-section {
+  padding-top: 10px;
+}
+
+.assessment-page .micro-interview {
+  display: grid;
+  gap: 18px;
+  margin: 0 0 28px;
+  padding: 24px;
+  border: 1px solid #e5ded3;
+  border-radius: 28px;
+  background: #ffffff;
+}
+
+.assessment-page .interview-heading,
+.assessment-page .question-header,
+.assessment-page .interview-summary {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.assessment-page .interview-score,
+.assessment-page .black-box-score {
+  gap: 8px;
+  min-width: max-content;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #7a4b00;
+  background: #fff1dc;
+  font-weight: 800;
+}
+
+.assessment-page .skill-match-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid #e5ded3;
+  border-radius: 22px;
+  background: #fbf4ea;
+}
+
+.assessment-page .skill-match-panel h3,
+.assessment-page .question-card h3,
+.assessment-page .result-card h3,
+.assessment-page .interview-summary h3 {
+  margin: 0;
+  color: #171e31;
+  font-size: 20px;
+}
+
+.assessment-page .skill-match-panel p,
+.assessment-page .question-why,
+.assessment-page .interview-summary p {
+  margin: 10px 0 0;
+}
+
+.assessment-page .skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-content: start;
+}
+
+.assessment-page .skill-tag {
+  gap: 8px;
+  min-height: 38px;
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #171e31;
+  background: white;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.assessment-page .skill-tag strong {
+  color: #ffad31;
+}
+
+.assessment-page .questions-list {
+  display: grid;
+  gap: 14px;
+}
+
+.assessment-page .question-card,
+.assessment-page .result-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #e5ded3;
+  border-radius: 24px;
+  background: white;
+}
+
+.assessment-page .question-prompt {
+  margin: 0;
+  color: #171e31;
+  font-size: 18px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.assessment-page .answer-options {
+  display: grid;
+  gap: 10px;
+}
+
+.assessment-page .answer-option {
+  position: relative;
+  gap: 12px;
+  min-height: 58px;
+  border: 1px solid #e5ded3;
+  border-radius: 18px;
+  padding: 12px;
+  color: #687080;
+  background: #fbfaf7;
+  cursor: pointer;
+}
+
+.assessment-page .answer-option.selected {
+  border-color: #ffad31;
+  background: #fff8ed;
+}
+
+.assessment-page .answer-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.assessment-page .option-label {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: white;
+  background: #171e31;
+  font-weight: 900;
+}
+
+.assessment-page .answer-option strong {
+  margin-left: auto;
+  color: #ffad31;
+  white-space: nowrap;
+}
+
+.assessment-page .star-grid {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assessment-page .star-grid span {
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: #171e31;
+  background: #fff1dc;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.assessment-page .open-answer {
+  display: grid;
+  gap: 8px;
+  color: #171e31;
+  font-weight: 800;
+}
+
+.assessment-page .open-answer textarea {
+  min-height: 86px;
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #e5ded3;
+  border-radius: 16px;
+  padding: 12px;
+  color: #171e31;
+  background: #fff;
+  font: inherit;
+  font-weight: 500;
+}
+
+.assessment-page .open-answer textarea:focus {
+  outline: 3px solid #ffd182;
+  outline-offset: 1px;
+}
+
+.assessment-page .interview-summary {
+  border-left: 6px solid #171e31;
+  border-radius: 22px;
+  padding: 18px;
+  background: #fbf4ea;
+}
+
+.assessment-page .roadmap {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assessment-page .roadmap-node {
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #e5ded3;
+  border-radius: 24px;
+  background: white;
+}
+
+.assessment-page .roadmap-node.active {
+  border-color: #ffad31;
+}
+
+.assessment-page .node-icon {
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  justify-content: center;
+  border-radius: 50%;
+  color: white;
+  background: #171e31;
+}
+
+.assessment-page .roadmap-node.done .node-icon {
+  background: #ffad31;
+  color: #171e31;
+}
+
+.assessment-page .roadmap-node h3 {
+  margin: 0;
+  color: #171e31;
+  font-size: 20px;
+}
+
+.assessment-page .roadmap-node ul {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: #687080;
+}
+
+.assessment-page .upload-cv {
+  border: 1px solid #e5ded3;
+  border-radius: 28px;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(23, 30, 49, 0.08);
+}
+
+.assessment-page .upload-cv-header h2,
+.assessment-page .drop-copy h3,
+.assessment-page .cv-text-preview h3 {
+  color: #171e31;
+}
+
+.assessment-page .upload-status {
+  border-color: #e5ded3;
+  color: #687080;
+}
+
+.assessment-page .upload-status.selected,
+.assessment-page .upload-status.analyzing,
+.assessment-page .upload-status.ready {
+  color: #7a4b00;
+  border-color: #ffd182;
+  background: #fff1dc;
+}
+
+.assessment-page .drop-zone {
+  border-color: #e5ded3;
+  border-radius: 22px;
+  background: #fbfaf7;
+}
+
+.assessment-page .drop-zone.has-file {
+  border-color: #ffad31;
+  background: #fff8ed;
+}
+
+.assessment-page .drop-icon {
+  color: #ffad31;
+  background: #fff1dc;
+}
+
+.assessment-page .browse-button {
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  color: #171e31;
+  background: #fff;
+}
+
+.assessment-page .analyze-button {
+  border-radius: 999px;
+  color: #171e31;
+  background: linear-gradient(180deg, #ffbd4d, #ffad31);
+  font-weight: 900;
+}
+
+.assessment-page .cv-text-preview {
+  border-color: #e5ded3;
+  border-radius: 20px;
+  background: #fbfaf7;
+}
+
+.assessment-page .cv-text-preview h3 {
+  border-bottom-color: #e5ded3;
+}
+
+@media (max-width: 760px) {
+  .assessment-page .hero-panel {
+    grid-template-columns: 1fr;
+    padding: 28px;
+  }
+
+  .assessment-page .score-ring {
+    justify-self: start;
+    width: 140px;
+  }
+
+  .assessment-page .topbar,
+  .assessment-page .actions-grid,
+  .assessment-page .next-action,
+  .assessment-page .interview-heading,
+  .assessment-page .question-header,
+  .assessment-page .interview-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .assessment-page .skill-match-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .assessment-page .answer-option {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .assessment-page .answer-option strong {
+    margin-left: 0;
+  }
+}

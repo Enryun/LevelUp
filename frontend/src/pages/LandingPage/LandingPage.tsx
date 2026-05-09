@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react'
 import {
   ArrowRight,
   Check,
@@ -7,6 +8,10 @@ import {
   Target,
 } from 'lucide-react'
 import './LandingPage.css'
+
+type LandingPageProps = {
+  onStart: () => void
+}
 
 const stats = [
   { value: '12,400+', label: 'Students' },
@@ -72,7 +77,12 @@ const testimonials = [
   },
 ]
 
-export function LandingPage() {
+export function LandingPage({ onStart }: LandingPageProps) {
+  function handleStart(event: MouseEvent<HTMLAnchorElement>) {
+    event.preventDefault()
+    onStart()
+  }
+
   return (
     <main className="landing-page">
       <section className="hero-section">
@@ -81,7 +91,7 @@ export function LandingPage() {
             <span className="brand-mark">L</span>
             <span>LevelUp AI</span>
           </a>
-          <a className="nav-cta" href="#get-started">
+          <a className="nav-cta" href="/assessment" onClick={handleStart}>
             Get started
             <ArrowRight size={18} />
           </a>
@@ -100,7 +110,7 @@ export function LandingPage() {
             5 minutes to discover your top 5 job matches - and the exact skill
             roadmap to get there.
           </p>
-          <a className="hero-button" href="#results">
+          <a className="hero-button" href="/assessment" onClick={handleStart}>
             Find Out Now
             <ArrowRight size={22} />
           </a>
