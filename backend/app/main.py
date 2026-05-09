@@ -8,14 +8,18 @@ from openai import AuthenticationError, OpenAIError
 
 from app.config import settings
 from app.cv_parser import extract_pdf_text
+from app.database import get_latest_roadmap, init_db
 from app.openai_agent import run_chat_agent
+from app.roadmap_agent import generate_and_save_roadmap
 from app.schemas import (
     ChatRequest,
     ChatResponse,
     CvTextResponse,
     Dashboard,
     MicroInterview,
+    RoadmapGenerateRequest,
     RoadmapNode,
+    RoadmapResponse,
     SoftSkillsInterviewRequest,
     SoftSkillsInterviewResponse,
 )
@@ -56,6 +60,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def startup() -> None:
+    init_db()
 
 
 @app.get("/health")
@@ -179,3 +188,31 @@ async def onboard_soft_skills_micro_interview(job_position: str = "Software Engi
             status_code=502,
             detail=f"OpenAI request failed: {error.__class__.__name__}",
         ) from error
+
+
+@app.post("/api/roadmaps/generate", response_model=RoadmapResponse)
+async def generate_roadmap(request: RoadmapGenerateRequest) -> RoadmapResponse:
+    try:
+        return await generate_and_save_roadmap(request)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except AuthenticationError as error:
+        raise HTTPException(
+            status_code=401,
+            detail="OpenAI authentication failed. Check OPENAI_API_KEY.",
+        ) from error
+    except OpenAIError as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI request failed: {error.__class__.__name__}",
+        ) from error
+
+
+@app.get("/api/roadmaps/latest", response_model=RoadmapResponse)
+def latest_roadmap(email: str) -> RoadmapResponse:
+    roadmap = get_latest_roadmap(email)
+
+    if roadmap is None:
+        raise HTTPException(status_code=404, detail="No saved roadmap found for this email.")
+
+    return roadmap

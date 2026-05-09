@@ -3,6 +3,7 @@ import {
   Check,
   CircleDot,
   FileUp,
+  Loader2,
   MessageSquareText,
   Play,
   Route,
@@ -11,6 +12,7 @@ import {
 } from 'lucide-react'
 import { apiUrl } from './config'
 import { UploadCv } from './features/upload-cv/UploadCv'
+import type { CvExtractResponse } from './features/upload-cv/UploadCv'
 import './App.css'
 
 type RoadmapNode = {
@@ -26,6 +28,15 @@ type Dashboard = {
   readiness_score: number
   next_action: string
   roadmap: RoadmapNode[]
+}
+
+type RoadmapResponse = Dashboard & {
+  id: string
+  email: string
+  name: string | null
+  created_at: string
+  cv_summary: string
+  interview_summary: string
 }
 
 type StarBreakdown = {
@@ -107,16 +118,28 @@ function averageStar(star: StarBreakdown) {
   return Math.round((star.situation + star.task + star.action + star.result) / 4)
 }
 
+function isEmailReady(email: string) {
+  const trimmed = email.trim()
+  return trimmed.includes('@') && trimmed.split('@')[1]?.includes('.')
+}
+
 function App() {
   const [dashboard, setDashboard] = useState<Dashboard>(fallbackDashboard)
   const [apiState, setApiState] = useState<'loading' | 'connected' | 'offline'>('loading')
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [targetRole, setTargetRole] = useState(fallbackDashboard.target_role)
   const [isUploadOpen, setIsUploadOpen] = useState(false)
+  const [extractedCv, setExtractedCv] = useState<CvExtractResponse | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [isInterviewOpen, setIsInterviewOpen] = useState(false)
   const [interviewState, setInterviewState] = useState<'idle' | 'loading' | 'ready' | 'offline'>('idle')
   const [microInterview, setMicroInterview] = useState<MicroInterview>(fallbackMicroInterview)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [roadmapState, setRoadmapState] = useState<'idle' | 'loading' | 'saving' | 'ready' | 'error'>('idle')
+  const [roadmapMessage, setRoadmapMessage] = useState('')
+  const [latestRoadmap, setLatestRoadmap] = useState<RoadmapResponse | null>(null)
   const interviewQuestions = microInterview.questions
   const jobPosition = microInterview.job_position
 
@@ -150,6 +173,12 @@ function App() {
   }, [answers, interviewQuestions])
 
   const activeQuestion = interviewQuestions[currentQuestionIndex]
+  const canGenerateRoadmap =
+    isEmailReady(email) &&
+    targetRole.trim().length > 1 &&
+    Boolean(extractedCv?.text.trim()) &&
+    isInterviewComplete &&
+    roadmapState !== 'saving'
 
   function handleAnswerSelect(question: InterviewQuestion, optionId: string) {
     setAnswers((current) => ({
@@ -170,6 +199,90 @@ function App() {
     }
   }
 
+  function handleTargetRoleChange(nextRole: string) {
+    setTargetRole(nextRole)
+
+    if (isInterviewOpen) {
+      setInterviewState('idle')
+      setMicroInterview(fallbackMicroInterview)
+      setAnswers({})
+      setNotes({})
+      setCurrentQuestionIndex(0)
+    }
+  }
+
+  function handleEmailChange(nextEmail: string) {
+    setEmail(nextEmail)
+
+    if (!isEmailReady(nextEmail)) {
+      setLatestRoadmap(null)
+      setRoadmapMessage('')
+      setRoadmapState('idle')
+    }
+  }
+
+  async function handleGenerateRoadmap() {
+    if (!canGenerateRoadmap || !extractedCv) {
+      setRoadmapState('error')
+      setRoadmapMessage('Add an email, target role, extracted CV, and completed micro-interview first.')
+      return
+    }
+
+    setRoadmapState('saving')
+    setRoadmapMessage('')
+
+    const completedAnswers = interviewQuestions.flatMap((question) => {
+      const selected = getSelectedOption(question, answers[question.id])
+
+      if (!selected) {
+        return []
+      }
+
+      return {
+        question_id: question.id,
+        skill: question.skill,
+        prompt: question.prompt,
+        selected_option_id: selected.id,
+        selected_option_summary: selected.summary,
+        match: selected.match,
+        star: selected.star,
+        notes: notes[question.id]?.trim() || null,
+      }
+    })
+
+    try {
+      const response = await fetch(apiUrl('/api/roadmaps/generate'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          name,
+          target_role: targetRole,
+          cv: extractedCv,
+          interview_score: interviewScore,
+          answers: completedAnswers,
+        }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.detail ?? 'Roadmap generation failed.')
+      }
+
+      const generated = (await response.json()) as RoadmapResponse
+      setDashboard(generated)
+      setTargetRole(generated.target_role)
+      setLatestRoadmap(generated)
+      setRoadmapState('ready')
+      setRoadmapMessage('Generated and saved your latest roadmap.')
+    } catch (error) {
+      setRoadmapState('error')
+      setRoadmapMessage(error instanceof Error ? error.message : 'Roadmap generation failed.')
+    }
+  }
+
   useEffect(() => {
     fetch(apiUrl('/api/dashboard'))
       .then((response) => {
@@ -180,6 +293,7 @@ function App() {
       })
       .then((data: Dashboard) => {
         setDashboard(data)
+        setTargetRole(data.target_role)
         setApiState('connected')
       })
       .catch(() => {
@@ -192,7 +306,7 @@ function App() {
       return
     }
 
-    fetch(apiUrl(`/api/onboard-soft-skills/micro-interview?job_position=${encodeURIComponent(dashboard.target_role)}`))
+    fetch(apiUrl(`/api/onboard-soft-skills/micro-interview?job_position=${encodeURIComponent(targetRole)}`))
       .then((response) => {
         if (!response.ok) {
           throw new Error('Micro-interview request failed')
@@ -209,7 +323,53 @@ function App() {
       .catch(() => {
         setInterviewState('offline')
       })
-  }, [interviewState, isInterviewOpen])
+  }, [interviewState, isInterviewOpen, targetRole])
+
+  useEffect(() => {
+    if (!isEmailReady(email)) {
+      return
+    }
+
+    const controller = new AbortController()
+
+    fetch(apiUrl(`/api/roadmaps/latest?email=${encodeURIComponent(email.trim().toLowerCase())}`), {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (response.status === 404) {
+          return null
+        }
+
+        if (!response.ok) {
+          throw new Error('Latest roadmap request failed')
+        }
+
+        return response.json()
+      })
+      .then((data: RoadmapResponse | null) => {
+        if (!data) {
+          setLatestRoadmap(null)
+          setRoadmapState((current) => (current === 'saving' ? current : 'idle'))
+          return
+        }
+
+        setLatestRoadmap(data)
+        setDashboard(data)
+        setTargetRole(data.target_role)
+        setRoadmapState((current) => (current === 'saving' ? current : 'ready'))
+        setRoadmapMessage('Loaded the latest saved roadmap for this email.')
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+
+        setRoadmapState((current) => (current === 'saving' ? current : 'error'))
+        setRoadmapMessage('Could not load the latest saved roadmap.')
+      })
+
+    return () => controller.abort()
+  }, [email])
 
   return (
     <main className="app-shell">
@@ -223,7 +383,7 @@ function App() {
 
       <section className="hero-panel">
         <div>
-          <p className="eyebrow">Pathway to {dashboard.target_role}</p>
+          <p className="eyebrow">Pathway to {targetRole || dashboard.target_role}</p>
           <h1>{dashboard.readiness_score}% market ready</h1>
           <p className="hero-copy">
             Turn academic projects into a hiring playbook with focused hard-skill
@@ -232,6 +392,83 @@ function App() {
         </div>
         <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
           <span>{dashboard.readiness_score}%</span>
+        </div>
+      </section>
+
+      <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
+        <div className="section-heading builder-heading">
+          <div>
+            <p className="eyebrow">Personalized roadmap</p>
+            <h2 id="roadmap-builder-title">Build from your CV and interview answers</h2>
+          </div>
+          {latestRoadmap && (
+            <span className="saved-roadmap-pill">
+              Saved {new Date(latestRoadmap.created_at).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+
+        <div className="builder-grid">
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => handleEmailChange(event.target.value)}
+              placeholder="you@example.com"
+            />
+          </label>
+          <label>
+            Name
+            <input
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Optional"
+            />
+          </label>
+          <label>
+            Target role
+            <input
+              type="text"
+              value={targetRole}
+              onChange={(event) => handleTargetRoleChange(event.target.value)}
+              placeholder="Junior Backend Engineer"
+            />
+          </label>
+        </div>
+
+        <div className="builder-status-grid">
+          <span className={isEmailReady(email) ? 'ready' : ''}>Email</span>
+          <span className={extractedCv?.text.trim() ? 'ready' : ''}>CV extracted</span>
+          <span className={isInterviewComplete ? 'ready' : ''}>Interview complete</span>
+          <span className={targetRole.trim().length > 1 ? 'ready' : ''}>Target role</span>
+        </div>
+
+        <div className="builder-actions">
+          <button
+            type="button"
+            className="generate-button"
+            onClick={handleGenerateRoadmap}
+            disabled={!canGenerateRoadmap}
+          >
+            {roadmapState === 'saving' ? (
+              <>
+                <Loader2 size={18} className="spin" />
+                Generating roadmap
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} />
+                Generate roadmap
+              </>
+            )}
+          </button>
+          {roadmapMessage && (
+            <p className={`roadmap-message ${roadmapState === 'error' ? 'error' : ''}`}>
+              {roadmapMessage}
+            </p>
+          )}
         </div>
       </section>
 
@@ -257,7 +494,12 @@ function App() {
         </button>
       </section>
 
-      {isUploadOpen && <UploadCv />}
+      {isUploadOpen && (
+        <UploadCv
+          onExtract={setExtractedCv}
+          onClear={() => setExtractedCv(null)}
+        />
+      )}
 
       {isInterviewOpen && (
         <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">

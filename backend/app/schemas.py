@@ -9,7 +9,7 @@ class RoadmapNode(BaseModel):
     title: str
     track: Literal["audit", "hard_skill", "soft_skill"]
     status: Literal["done", "active", "next"]
-    tasks: list[str]
+    tasks: list[str] = Field(..., min_length=2, max_length=4)
 
 
 class Dashboard(BaseModel):
@@ -104,3 +104,67 @@ class SoftSkillsInterviewRequest(BaseModel):
 class SoftSkillsInterviewResponse(BaseModel):
     job_position: str
     questions: list[SoftSkillQuestion]
+
+
+class RoadmapCvInput(BaseModel):
+    filename: str
+    text: str = Field(..., min_length=1)
+    page_count: int = Field(..., ge=1)
+
+
+class RoadmapInterviewAnswer(BaseModel):
+    question_id: str
+    skill: str
+    prompt: str
+    selected_option_id: str
+    selected_option_summary: str
+    match: int = Field(..., ge=0, le=100)
+    star: StarBreakdown
+    notes: str | None = None
+
+
+class RoadmapGenerateRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=254)
+    name: str | None = Field(default=None, max_length=120)
+    target_role: str = Field(..., min_length=2, max_length=120)
+    cv: RoadmapCvInput
+    interview_score: int = Field(..., ge=0, le=100)
+    answers: list[RoadmapInterviewAnswer] = Field(..., min_length=1)
+
+    @field_validator("email")
+    @classmethod
+    def email_must_look_valid(cls, value: str) -> str:
+        stripped = value.strip().lower()
+        if "@" not in stripped or "." not in stripped.rsplit("@", 1)[-1]:
+            raise ValueError("email must be a valid email address")
+        return stripped
+
+    @field_validator("name")
+    @classmethod
+    def blank_name_to_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        return stripped or None
+
+    @field_validator("target_role")
+    @classmethod
+    def target_role_must_have_text(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("target_role must not be blank")
+        return stripped
+
+
+class RoadmapAgentOutput(Dashboard):
+    readiness_score: int = Field(..., ge=0, le=100)
+    roadmap: list[RoadmapNode] = Field(..., min_length=3, max_length=5)
+    cv_summary: str = Field(..., description="A concise summary of relevant CV signals.")
+    interview_summary: str = Field(..., description="A concise summary of questionnaire answer signals.")
+
+
+class RoadmapResponse(RoadmapAgentOutput):
+    id: str
+    email: str
+    name: str | None = None
+    created_at: str
