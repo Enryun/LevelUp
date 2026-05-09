@@ -1,7 +1,3 @@
-import { useEffect, useState } from 'react'
-import { Check, CircleDot, FileUp, MessageSquareText, Play, Route } from 'lucide-react'
-import { apiUrl } from './config'
-import { UploadCv } from './features/upload-cv/UploadCv'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Check,
@@ -13,6 +9,8 @@ import {
   Sparkles,
   Target,
 } from 'lucide-react'
+import { apiUrl } from './config'
+import { UploadCv } from './features/upload-cv/UploadCv'
 import './App.css'
 
 type RoadmapNode = {
