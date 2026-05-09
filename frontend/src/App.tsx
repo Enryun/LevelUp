@@ -81,227 +81,23 @@ const fallbackDashboard: Dashboard = {
   ],
 }
 
-const jobPosition = 'Frontend Engineer'
+type MicroInterview = {
+  job_position: string
+  fit_title: string
+  completion_copy: string
+  incomplete_copy: string
+  questions: InterviewQuestion[]
+}
 
-const interviewQuestions: InterviewQuestion[] = [
-  {
-    id: 'problem-solving',
-    skill: 'Problem-solving',
-    weight: 25,
-    prompt:
-      'A production page is slow after a new component release. How would you explain what happened and what you did?',
-    why: 'Frontend engineers need to debug user-visible issues, isolate causes, and explain tradeoffs.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Names the bug and says you fixed it, but gives little context or outcome.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 45, result: 35 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Explains the page, your responsibility, the debugging steps, and a basic result.',
-        match: 65,
-        star: { situation: 70, task: 60, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Shows context, ownership, measured investigation, tradeoffs, and performance impact.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 95, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'communication',
-    skill: 'Communication',
-    weight: 20,
-    prompt:
-      'You need to explain a frontend technical decision to a product manager or designer. What would your answer include?',
-    why: 'Strong frontend work depends on clear written and verbal updates across technical and non-technical teammates.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Uses technical terms and focuses mainly on what you personally prefer.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 40, result: 35 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Explains the decision in plain language and mentions the user or delivery effect.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 65, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Adapts to the audience, compares options, checks understanding, and confirms next steps.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'collaboration',
-    skill: 'Collaboration',
-    weight: 15,
-    prompt:
-      'A designer and backend engineer disagree with your implementation approach. How do you move the work forward?',
-    why: 'Frontend engineers sit between design, product, backend, QA, and users.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Defends your approach and waits for someone else to decide.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 35, result: 45 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Listens to both sides, clarifies constraints, and proposes one compromise.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Frames a shared goal, uses evidence, documents a decision, and protects team momentum.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 95, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'ownership',
-    skill: 'Ownership',
-    weight: 15,
-    prompt:
-      'You discover an accessibility issue that was not part of your assigned ticket. What do you do?',
-    why: 'Good frontend ownership means caring about real user outcomes, not only assigned tasks.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Leaves it for later because it was outside the ticket.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 35, result: 45 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Flags it, estimates effort, and asks whether it should be included now.',
-        match: 65,
-        star: { situation: 65, task: 70, action: 65, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Assesses impact, communicates risk early, proposes a scoped fix, and follows through.',
-        match: 90,
-        star: { situation: 90, task: 90, action: 90, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'adaptability',
-    skill: 'Adaptability',
-    weight: 10,
-    prompt:
-      'Requirements change after you already built most of a feature. How do you respond?',
-    why: 'Frontend work changes quickly as teams learn from design reviews, user feedback, and technical constraints.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Says the change is frustrating and tries to keep the original plan.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 40, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Clarifies what changed, updates the plan, and communicates the schedule impact.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Finds reusable work, renegotiates scope, ships the highest-value path, and captures the lesson.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'feedback',
-    skill: 'Feedback mindset',
-    weight: 10,
-    prompt:
-      'A reviewer gives tough feedback on your React implementation. What would a strong response look like?',
-    why: 'Frontend engineers grow through code review, design critique, and repeated iteration.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Explains why your original approach was fine and changes only what is required.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 35, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Asks clarifying questions, applies the feedback, and checks the updated work.',
-        match: 65,
-        star: { situation: 60, task: 65, action: 70, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Turns critique into a better pattern, documents the learning, and improves future PRs.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'empathy',
-    skill: 'Empathy/product thinking',
-    weight: 5,
-    prompt:
-      'User feedback shows that a polished UI is still confusing. How do you decide what to change?',
-    why: 'Frontend decisions should connect technical implementation to user comprehension and product value.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Keeps the visual design because the UI looks clean and matches the spec.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 35, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Reviews the feedback, adjusts copy or layout, and asks for another check.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 65, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Identifies the user goal, tests a simpler flow, measures understanding, and shares the tradeoff.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 90, result: 95 },
-      },
-    ],
-  },
-]
+const fallbackMicroInterview: MicroInterview = {
+  job_position: 'Frontend Engineer',
+  fit_title: 'Frontend soft-skill fit',
+  completion_copy:
+    'STAR completeness and black box scoring are now available because every frontend interview question has been answered.',
+  incomplete_copy:
+    'Complete every question to reveal STAR breakdowns and the weighted frontend black box score.',
+  questions: [],
+}
 
 function getSelectedOption(question: InterviewQuestion, selectedId: string) {
   return question.options.find((option) => option.id === selectedId)
@@ -318,22 +114,31 @@ function App() {
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [isInterviewOpen, setIsInterviewOpen] = useState(false)
+  const [interviewState, setInterviewState] = useState<'idle' | 'loading' | 'ready' | 'offline'>('idle')
+  const [microInterview, setMicroInterview] = useState<MicroInterview>(fallbackMicroInterview)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const interviewQuestions = microInterview.questions
+  const jobPosition = microInterview.job_position
 
   const answeredCount = useMemo(() => {
     return interviewQuestions.filter((question) => Boolean(answers[question.id])).length
-  }, [answers])
+  }, [answers, interviewQuestions])
 
-  const isInterviewComplete = answeredCount === interviewQuestions.length
+  const isInterviewComplete = interviewQuestions.length > 0 && answeredCount === interviewQuestions.length
 
   const interviewScore = useMemo(() => {
     const weightedTotal = interviewQuestions.reduce((total, question) => {
       const option = getSelectedOption(question, answers[question.id])
       return total + (option?.match ?? 0) * question.weight
     }, 0)
+    const totalWeight = interviewQuestions.reduce((total, question) => total + question.weight, 0)
 
-    return Math.round(weightedTotal / 100)
-  }, [answers])
+    if (totalWeight === 0) {
+      return 0
+    }
+
+    return Math.round(weightedTotal / totalWeight)
+  }, [answers, interviewQuestions])
 
   const strongestSkill = useMemo(() => {
     return interviewQuestions
@@ -342,7 +147,7 @@ function App() {
         score: getSelectedOption(question, answers[question.id])?.match ?? 0,
       }))
       .sort((left, right) => right.score - left.score)[0]
-  }, [answers])
+  }, [answers, interviewQuestions])
 
   const activeQuestion = interviewQuestions[currentQuestionIndex]
 
@@ -354,6 +159,14 @@ function App() {
 
     if (currentQuestionIndex < interviewQuestions.length - 1) {
       setCurrentQuestionIndex((current) => current + 1)
+    }
+  }
+
+  function handleInterviewStart() {
+    setIsInterviewOpen(true)
+
+    if (interviewState === 'idle') {
+      setInterviewState('loading')
     }
   }
 
@@ -373,6 +186,30 @@ function App() {
         setApiState('offline')
       })
   }, [])
+
+  useEffect(() => {
+    if (!isInterviewOpen || interviewState !== 'loading') {
+      return
+    }
+
+    fetch(apiUrl(`/api/onboard-soft-skills/micro-interview?job_position=${encodeURIComponent(dashboard.target_role)}`))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Micro-interview request failed')
+        }
+        return response.json()
+      })
+      .then((data: MicroInterview) => {
+        setMicroInterview(data)
+        setAnswers({})
+        setNotes({})
+        setCurrentQuestionIndex(0)
+        setInterviewState('ready')
+      })
+      .catch(() => {
+        setInterviewState('offline')
+      })
+  }, [interviewState, isInterviewOpen])
 
   return (
     <main className="app-shell">
@@ -413,7 +250,7 @@ function App() {
           className={`action-button secondary ${isInterviewOpen ? 'active' : ''}`}
           aria-expanded={isInterviewOpen}
           aria-controls="micro-interview"
-          onClick={() => setIsInterviewOpen(true)}
+          onClick={handleInterviewStart}
         >
           {isInterviewOpen ? <Check size={18} /> : <MessageSquareText size={18} />}
           {isInterviewOpen ? 'Micro-interview started' : 'Start micro-interview'}
@@ -450,11 +287,8 @@ function App() {
             <div className="skill-match-panel">
               <div>
                 <p className="eyebrow">Role-matched soft skills</p>
-                <h3>Frontend soft-skill fit</h3>
-                <p>
-                  STAR completeness and black box scoring are now available because
-                  every frontend interview question has been answered.
-                </p>
+                <h3>{microInterview.fit_title}</h3>
+                <p>{microInterview.completion_copy}</p>
               </div>
               <div className="skill-tags">
                 {interviewQuestions.map((question) => {
@@ -471,7 +305,24 @@ function App() {
             </div>
           )}
 
-          {!isInterviewComplete && (
+          {interviewState === 'loading' && (
+            <div className="questions-list">
+              <article className="question-card">
+                <p className="question-prompt">Loading micro-interview questions...</p>
+              </article>
+            </div>
+          )}
+
+          {interviewState === 'offline' && (
+            <div className="questions-list">
+              <article className="question-card">
+                <p className="question-prompt">Micro-interview questions are unavailable.</p>
+                <p className="question-why">Check the backend connection and try starting the interview again.</p>
+              </article>
+            </div>
+          )}
+
+          {!isInterviewComplete && activeQuestion && (
             <div className="questions-list">
               <article className="question-card">
                 <div className="question-header">
@@ -560,13 +411,13 @@ function App() {
               <p className="eyebrow">Current signal</p>
               <h3>
                 {isInterviewComplete
-                  ? `${strongestSkill.skill} is strongest so far`
+                  ? `${strongestSkill?.skill ?? 'Soft-skill fit'} is strongest so far`
                   : `${answeredCount} of ${interviewQuestions.length} answered`}
               </h3>
               <p>
                 {isInterviewComplete
                   ? 'Use the selected STAR pattern as the first-pass score, then calibrate with the written answer notes.'
-                  : 'Complete every question to reveal STAR breakdowns and the weighted frontend black box score.'}
+                  : microInterview.incomplete_copy}
               </p>
             </div>
             <button type="button" className="start-button" aria-label="Complete micro-interview">
