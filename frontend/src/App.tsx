@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Check, CircleDot, FileUp, MessageSquareText, Play, Route } from 'lucide-react'
+import { UploadCv } from './features/upload-cv/UploadCv'
 import './App.css'
 
 type RoadmapNode = {
@@ -49,6 +50,7 @@ const fallbackDashboard: Dashboard = {
 function App() {
   const [dashboard, setDashboard] = useState<Dashboard>(fallbackDashboard)
   const [apiState, setApiState] = useState<'loading' | 'connected' | 'offline'>('loading')
+  const [isUploadOpen, setIsUploadOpen] = useState(false)
 
   useEffect(() => {
     fetch('http://localhost:8000/api/dashboard')
@@ -92,7 +94,12 @@ function App() {
       </section>
 
       <section className="actions-grid">
-        <button type="button" className="action-button">
+        <button
+          type="button"
+          className="action-button"
+          onClick={() => setIsUploadOpen((value) => !value)}
+          aria-expanded={isUploadOpen}
+        >
           <FileUp size={18} />
           Upload CV
         </button>
@@ -101,6 +108,8 @@ function App() {
           Start micro-interview
         </button>
       </section>
+
+      {isUploadOpen && <UploadCv />}
 
       <section className="next-action">
         <div>
