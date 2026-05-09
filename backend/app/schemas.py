@@ -156,9 +156,51 @@ class RoadmapGenerateRequest(BaseModel):
         return stripped
 
 
+class DetailedRoadmapNode(BaseModel):
+    id: str
+    title: str
+    category: Literal[
+        "foundation",
+        "hard_skill",
+        "soft_skill",
+        "portfolio",
+        "english",
+        "certification",
+        "internship",
+        "application",
+        "interview",
+    ]
+    status: Literal["done", "active", "next"]
+    description: str
+    tasks: list[str] = Field(..., min_length=2, max_length=5)
+    resources: list[str] = Field(default_factory=list, max_length=4)
+    estimated_time: str
+    depends_on: list[str] = Field(default_factory=list)
+
+
+class DetailedRoadmapPhase(BaseModel):
+    id: str
+    title: str
+    timeframe: str
+    goal: str
+    nodes: list[DetailedRoadmapNode] = Field(..., min_length=2, max_length=5)
+
+
+class DetailedRoadmap(BaseModel):
+    headline: str
+    timeline: str
+    phases: list[DetailedRoadmapPhase] = Field(..., min_length=3, max_length=5)
+    suggested_projects: list[str] = Field(..., min_length=2, max_length=5)
+    english_targets: list[str] = Field(default_factory=list, max_length=5)
+    certifications: list[str] = Field(default_factory=list, max_length=5)
+    portfolio_actions: list[str] = Field(..., min_length=2, max_length=5)
+    internship_actions: list[str] = Field(..., min_length=2, max_length=5)
+
+
 class RoadmapAgentOutput(Dashboard):
     readiness_score: int = Field(..., ge=0, le=100)
     roadmap: list[RoadmapNode] = Field(..., min_length=3, max_length=5)
+    detailed_roadmap: DetailedRoadmap
     cv_summary: str = Field(..., description="A concise summary of relevant CV signals.")
     interview_summary: str = Field(..., description="A concise summary of questionnaire answer signals.")
 
@@ -168,6 +210,7 @@ class RoadmapResponse(RoadmapAgentOutput):
     email: str
     name: str | None = None
     created_at: str
+    detailed_roadmap: DetailedRoadmap | None = None
 
 
 class JobPosition(BaseModel):

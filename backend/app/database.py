@@ -35,6 +35,12 @@ def init_db() -> None:
             )
             """
         )
+        existing_columns = {
+            row["name"]
+            for row in connection.execute("PRAGMA table_info(roadmaps)").fetchall()
+        }
+        if "detailed_roadmap_json" not in existing_columns:
+            connection.execute("ALTER TABLE roadmaps ADD COLUMN detailed_roadmap_json TEXT")
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_roadmaps_email_created_at ON roadmaps(email, created_at DESC)"
         )
@@ -59,11 +65,12 @@ def save_roadmap(
                 readiness_score,
                 next_action,
                 roadmap_json,
+                detailed_roadmap_json,
                 cv_summary,
                 interview_summary,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 roadmap_id,
@@ -73,6 +80,7 @@ def save_roadmap(
                 output.readiness_score,
                 output.next_action,
                 json.dumps([node.model_dump() for node in output.roadmap]),
+                json.dumps(output.detailed_roadmap.model_dump()),
                 output.cv_summary,
                 output.interview_summary,
                 created_at,
@@ -113,6 +121,7 @@ def get_latest_roadmap(email: str) -> RoadmapResponse | None:
         readiness_score=row["readiness_score"],
         next_action=row["next_action"],
         roadmap=json.loads(row["roadmap_json"]),
+        detailed_roadmap=json.loads(row["detailed_roadmap_json"]) if row["detailed_roadmap_json"] else None,
         cv_summary=row["cv_summary"],
         interview_summary=row["interview_summary"],
     )
