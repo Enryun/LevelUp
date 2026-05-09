@@ -168,3 +168,22 @@ class RoadmapResponse(RoadmapAgentOutput):
     email: str
     name: str | None = None
     created_at: str
+
+
+class JobPosition(BaseModel):
+    title: str
+    company: str | None = None
+    salary: str
+    description: str
+    keywords: list[str]
+    url: str | None = None
+    site_name: str | None = None
+
+
+class JobSearchResponse(BaseModel):
+    target_role: str
+    jobs: list[JobPosition]
+
+
+class JobSearchRequest(BaseModel):
+    target_role: str = Field(..., min_length=2, max_length=120)

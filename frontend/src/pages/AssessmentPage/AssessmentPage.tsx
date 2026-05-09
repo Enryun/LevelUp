@@ -10,6 +10,7 @@ import {
   Route,
   Sparkles,
   Target,
+  X,
 } from 'lucide-react'
 import { apiUrl } from '../../config'
 import { UploadCv } from '../../features/upload-cv/UploadCv'
@@ -70,6 +71,21 @@ type MicroInterview = {
   completion_copy: string
   incomplete_copy: string
   questions: InterviewQuestion[]
+}
+
+type JobPosition = {
+  title: string
+  company: string | null
+  salary: string
+  description: string
+  keywords: string[]
+  url: string | null
+  site_name: string | null
+}
+
+type JobSearchResponse = {
+  target_role: string
+  jobs: JobPosition[]
 }
 
 type AssessmentPageProps = {
@@ -145,6 +161,9 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
   const [roadmapState, setRoadmapState] = useState<'idle' | 'saving' | 'ready' | 'error'>('idle')
   const [roadmapMessage, setRoadmapMessage] = useState('')
   const [latestRoadmap, setLatestRoadmap] = useState<RoadmapResponse | null>(null)
+  const [isRoadmapDialogOpen, setIsRoadmapDialogOpen] = useState(false)
+  const [jobSearchState, setJobSearchState] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
+  const [jobPositions, setJobPositions] = useState<JobPosition[]>([])
   const interviewQuestions = microInterview.questions
   const jobPosition = microInterview.job_position
 
@@ -200,6 +219,23 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
     setIsInterviewOpen(true)
     if (interviewState === 'idle') {
       setInterviewState('loading')
+    }
+  }
+
+  async function handleJobSearch() {
+    setJobSearchState('loading')
+    try {
+      const res = await fetch(apiUrl('/api/jobs/search'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_role: targetRole }),
+      })
+      if (!res.ok) throw new Error('Job search failed')
+      const data = (await res.json()) as JobSearchResponse
+      setJobPositions(data.jobs)
+      setJobSearchState('ready')
+    } catch {
+      setJobSearchState('error')
     }
   }
 
@@ -275,6 +311,7 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
       setLatestRoadmap(generated)
       setRoadmapState('ready')
       setRoadmapMessage('Generated and saved your latest roadmap.')
+      setIsRoadmapDialogOpen(true)
     } catch (error) {
       setRoadmapState('error')
       setRoadmapMessage(error instanceof Error ? error.message : 'Roadmap generation failed.')
@@ -392,7 +429,8 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
           </div>
         </section>
 
-        <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
+        {isInterviewComplete && (
+          <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
           <div className="section-heading builder-heading">
             <div>
               <p className="eyebrow">Personalized roadmap</p>
@@ -443,33 +481,45 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
           </div>
 
           <div className="builder-actions">
-            <button
-              type="button"
-              className="generate-button"
-              onClick={handleGenerateRoadmap}
-              disabled={!canGenerateRoadmap}
-            >
-              {roadmapState === 'saving' ? (
-                <>
-                  <Loader2 size={18} className="spin" />
-                  Generating roadmap
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} />
-                  Generate roadmap
-                </>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                type="button"
+                className="generate-button"
+                onClick={handleGenerateRoadmap}
+                disabled={!canGenerateRoadmap}
+              >
+                {roadmapState === 'saving' ? (
+                  <>
+                    <Loader2 size={18} className="spin" />
+                    Generating roadmap
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={18} />
+                    Generate roadmap
+                  </>
+                )}
+              </button>
+              {latestRoadmap && (
+                <button
+                  type="button"
+                  className="action-button secondary"
+                  onClick={() => setIsRoadmapDialogOpen(true)}
+                >
+                  View roadmap
+                </button>
               )}
-            </button>
+            </div>
             {roadmapMessage && (
               <p className={`roadmap-message ${roadmapState === 'error' ? 'error' : ''}`}>
                 {roadmapMessage}
               </p>
             )}
           </div>
-        </section>
+          </section>
+        )}
 
-        <section className="actions-grid">
+        <section className="actions-grid" style={{ gridTemplateColumns: '1fr' }}>
           <button
             type="button"
             className="action-button"
@@ -479,24 +529,16 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
             <FileUp size={18} />
             Upload CV
           </button>
-          <button
-            type="button"
-            className={`action-button secondary ${isInterviewOpen ? 'active' : ''}`}
-            aria-expanded={isInterviewOpen}
-            aria-controls="micro-interview"
-            onClick={handleInterviewStart}
-          >
-            {isInterviewOpen ? <Check size={18} /> : <MessageSquareText size={18} />}
-            {isInterviewOpen ? 'Micro-interview started' : 'Start micro-interview'}
-          </button>
         </section>
 
         {isUploadOpen && (
           <UploadCv
             onExtract={setExtractedCv}
             onClear={() => setExtractedCv(null)}
+            onNext={handleInterviewStart}
           />
         )}
+
 
         {isInterviewOpen && (
           <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">
@@ -523,25 +565,106 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
             </div>
 
             {isInterviewComplete && (
-              <div className="skill-match-panel">
-                <div>
-                  <p className="eyebrow">Role-matched soft skills</p>
-                  <h3>{microInterview.fit_title}</h3>
-                  <p>{microInterview.completion_copy}</p>
-                </div>
-                <div className="skill-tags">
-                  {interviewQuestions.map((question) => {
-                    const selected = getSelectedOption(question, answers[question.id])
+              <>
+                <div className="skill-match-panel">
+                  <div>
+                    <p className="eyebrow">Role-matched soft skills</p>
+                    <h3>{microInterview.fit_title}</h3>
+                    <p>{microInterview.completion_copy}</p>
+                  </div>
+                  <div className="skill-tags">
+                    {interviewQuestions.map((question) => {
+                      const selected = getSelectedOption(question, answers[question.id])
 
-                    return (
-                      <span key={question.id} className="skill-tag">
-                        {question.skill}
-                        <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
-                      </span>
-                    )
-                  })}
+                      return (
+                        <span key={question.id} className="skill-tag">
+                          {question.skill}
+                          <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
+                        </span>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
+
+                {/* Job positions section */}
+                <div className="job-positions-section">
+                  <div className="section-heading">
+                    <div>
+                      <p className="eyebrow">Matched opportunities</p>
+                      <h2>Jobs matching your profile</h2>
+                    </div>
+                    {jobSearchState === 'loading' && (
+                      <div className="jobs-loading">
+                        <Loader2 size={20} className="spin" />
+                        <span>Finding roles…</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {jobSearchState === 'idle' && (
+                    <div className="builder-actions">
+                      <button
+                        type="button"
+                        className="generate-button"
+                        onClick={handleJobSearch}
+                      >
+                        <Sparkles size={18} />
+                        Find job positions
+                      </button>
+                    </div>
+                  )}
+
+                  {jobSearchState === 'error' && (
+                    <div className="job-error-row">
+                      <p className="roadmap-message error">Could not load job listings. Please try again.</p>
+                      <button
+                        type="button"
+                        className="action-button secondary"
+                        onClick={handleJobSearch}
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  )}
+
+                  {jobSearchState === 'ready' && (
+                    <ol className="job-cards-list">
+                      {jobPositions.map((job, i) => (
+                        <li key={i} className="job-card">
+                          <div className="job-card-header">
+                            <div>
+                              <h3 className="job-title">{job.title}</h3>
+                              {job.company && (
+                                <p className="job-company">{job.company}</p>
+                              )}
+                              <span className="job-salary">{job.salary}</span>
+                            </div>
+                            <span className="job-number">#{i + 1}</span>
+                          </div>
+                          <p className="job-description">{job.description}</p>
+                          <div className="job-card-footer">
+                            <div className="job-keywords">
+                              {job.keywords.map((kw) => (
+                                <span key={kw} className="job-keyword">{kw}</span>
+                              ))}
+                            </div>
+                            {job.url && (
+                              <a
+                                href={job.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="job-site-link"
+                              >
+                                {job.site_name ?? new URL(job.url).hostname}
+                              </a>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                </div>
+              </>
             )}
 
             {interviewState === 'loading' && (
@@ -666,40 +789,56 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
           </section>
         )}
 
-        <section className="next-action">
-          <div>
-            <p className="eyebrow">Next action</p>
-            <h2>{dashboard.next_action}</h2>
-          </div>
-          <button type="button" className="start-button" aria-label="Start next action">
-            <Play size={18} fill="currentColor" />
-          </button>
-        </section>
+        {isRoadmapDialogOpen && (
+          <div className="modal-overlay" onClick={() => setIsRoadmapDialogOpen(false)}>
+            <div className="modal-content roadmap-dialog" onClick={(e) => e.stopPropagation()}>
+              <button
+                type="button"
+                className="close-dialog-button"
+                onClick={() => setIsRoadmapDialogOpen(false)}
+                aria-label="Close roadmap"
+              >
+                <X size={24} />
+              </button>
+              <div className="dialog-scroll-area">
+                <section className="next-action">
+                  <div>
+                    <p className="eyebrow">Next action</p>
+                    <h2>{dashboard.next_action}</h2>
+                  </div>
+                  <button type="button" className="start-button" aria-label="Start next action">
+                    <Play size={18} fill="currentColor" />
+                  </button>
+                </section>
 
-        <section className="roadmap-section">
-          <div className="section-heading">
-            <p className="eyebrow">Dynamic roadmap</p>
-            <h2>Today&apos;s path</h2>
-          </div>
-          <ol className="roadmap">
-            {dashboard.roadmap.map((node) => (
-              <li key={node.id} className={`roadmap-node ${node.status}`}>
-                <span className="node-icon">
-                  {node.status === 'done' ? <Check size={18} /> : <CircleDot size={18} />}
-                </span>
-                <div>
-                  <p className="track">{node.track.replace('_', ' ')}</p>
-                  <h3>{node.title}</h3>
-                  <ul>
-                    {node.tasks.map((task) => (
-                      <li key={task}>{task}</li>
+                <section className="roadmap-section">
+                  <div className="section-heading">
+                    <p className="eyebrow">Dynamic roadmap</p>
+                    <h2>Today&apos;s path</h2>
+                  </div>
+                  <ol className="roadmap">
+                    {dashboard.roadmap.map((node) => (
+                      <li key={node.id} className={`roadmap-node ${node.status}`}>
+                        <span className="node-icon">
+                          {node.status === 'done' ? <Check size={18} /> : <CircleDot size={18} />}
+                        </span>
+                        <div>
+                          <p className="track">{node.track.replace('_', ' ')}</p>
+                          <h3>{node.title}</h3>
+                          <ul>
+                            {node.tasks.map((task) => (
+                              <li key={task}>{task}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </li>
                     ))}
-                  </ul>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+                  </ol>
+                </section>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
