@@ -36,11 +36,16 @@ generate_soft_skills_questions = _load_soft_skills_module(
     "onboard_soft_skills_service",
     "service.py",
 ).generate_soft_skills_questions
+
+generate_micro_interview = _load_soft_skills_module(
+    "onboard_soft_skills_service",
+    "service.py",
+).generate_micro_interview
+
 get_micro_interview = _load_soft_skills_module(
     "onboard_soft_skills_interview_data",
     "interview_data.py",
 ).get_micro_interview
-
 
 app = FastAPI(title=settings.app_name)
 
@@ -159,5 +164,18 @@ async def onboard_soft_skills_questions(
 
 
 @app.get("/api/onboard-soft-skills/micro-interview", response_model=MicroInterview)
-def onboard_soft_skills_micro_interview() -> MicroInterview:
-    return get_micro_interview()
+async def onboard_soft_skills_micro_interview(job_position: str = "Software Engineer") -> MicroInterview:
+    try:
+        return await generate_micro_interview(job_position)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except AuthenticationError as error:
+        raise HTTPException(
+            status_code=401,
+            detail="OpenAI authentication failed. Check OPENAI_API_KEY.",
+        ) from error
+    except OpenAIError as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI request failed: {error.__class__.__name__}",
+        ) from error

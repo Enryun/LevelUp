@@ -192,7 +192,7 @@ function App() {
       return
     }
 
-    fetch(apiUrl('/api/onboard-soft-skills/micro-interview'))
+    fetch(apiUrl(`/api/onboard-soft-skills/micro-interview?job_position=${encodeURIComponent(dashboard.target_role)}`))
       .then((response) => {
         if (!response.ok) {
           throw new Error('Micro-interview request failed')

@@ -3,6 +3,7 @@ from agents import Agent, ModelSettings, Runner
 from app.config import settings
 from app.openai_agent import _configure_agents_sdk
 from app.schemas import (
+    MicroInterview,
     SoftSkillQuestion,
     SoftSkillsInterviewRequest,
     SoftSkillsInterviewResponse,
@@ -99,3 +100,57 @@ async def generate_soft_skills_questions(
         questions.extend(fallback.questions[len(questions) : request.question_count])
 
     return SoftSkillsInterviewResponse(job_position=role, questions=questions)
+
+
+def _build_micro_interview_agent() -> Agent:
+    return Agent(
+        name="Micro Interview Generator",
+        model=settings.openai_model,
+        model_settings=ModelSettings(
+            temperature=0.85,
+            top_p=1,
+        ),
+        output_type=MicroInterview,
+        instructions=(
+            "Generate a complete soft-skills micro-interview for the requested job position.\n"
+            "\n"
+            "Rules:\n"
+            "- Use the requested job position as the role context.\n"
+            "- Set fit_title to a descriptive title (e.g. 'Backend soft-skill fit').\n"
+            "- Set completion_copy and incomplete_copy explaining the STAR score breakdown.\n"
+            "- Generate 5 to 7 behavioral or situational soft-skill questions.\n"
+            "- Each question must have 3 options (A, B, C) that demonstrate different levels of competence.\n"
+            "- Assign 'match' scores and 'star' breakdowns representing Situation, Task, Action, Result (out of 100) to each option.\n"
+            "- Do not ask technical trivia.\n"
+            "- Use stable lowercase kebab-case ids for all ids."
+        ),
+    )
+
+
+async def generate_micro_interview(job_position: str) -> MicroInterview:
+    _configure_agents_sdk()
+
+    role = job_position.strip() or "Software Engineer"
+    prompt = (
+        f"Job position: {role}\n"
+        "Generate a soft-skill micro-interview for this job position with questions, options and STAR scores."
+    )
+
+    try:
+        result = await Runner.run(_build_micro_interview_agent(), prompt)
+        output = result.final_output
+
+        if not isinstance(output, MicroInterview):
+            output = MicroInterview.model_validate(output)
+
+        return output
+    except Exception:
+        import importlib.util
+        from pathlib import Path
+        module_path = Path(__file__).parent / "interview_data.py"
+        spec = importlib.util.spec_from_file_location("interview_data", module_path)
+        if spec and spec.loader:
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module.get_micro_interview() # type: ignore
+        raise RuntimeError("Failed to generate micro interview and fallback could not be loaded.")
