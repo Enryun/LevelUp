@@ -3,7 +3,6 @@ import {
   ArrowLeft,
   Check,
   CircleDot,
-  FileUp,
   Loader2,
   Play,
   Route,
@@ -133,6 +132,8 @@ type AssessmentPageProps = {
   onOpenRoadmap: () => void
 }
 
+type OnboardingStep = 'upload' | 'interview' | 'match' | 'roadmap'
+
 const ROADMAP_SESSION_KEY = 'levelup.latestRoadmap'
 
 const fallbackDashboard: Dashboard = {
@@ -193,7 +194,7 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
   const [email, setEmail] = useState('')
   const [name, setName] = useState('')
   const [targetRole, setTargetRole] = useState(fallbackDashboard.target_role)
-  const [isUploadOpen, setIsUploadOpen] = useState(true)
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>('upload')
   const [extractedCv, setExtractedCv] = useState<CvExtractResponse | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
@@ -209,6 +210,14 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
   const [jobPositions, setJobPositions] = useState<JobPosition[]>([])
   const interviewQuestions = microInterview.questions
   const jobPosition = microInterview.job_position
+  const isInterviewAnalyzing = interviewState === 'loading' || interviewQuestions.length === 0
+  const onboardingSteps: Array<{ id: OnboardingStep; label: string }> = [
+    { id: 'upload', label: 'Upload CV' },
+    { id: 'interview', label: 'Interview' },
+    { id: 'match', label: 'Skill match' },
+    { id: 'roadmap', label: 'Roadmap' },
+  ]
+  const activeStepIndex = onboardingSteps.findIndex((step) => step.id === onboardingStep)
 
   const answeredCount = useMemo(() => {
     return interviewQuestions.filter((question) => Boolean(answers[question.id])).length
@@ -248,17 +257,22 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
     roadmapState !== 'saving'
 
   function handleAnswerSelect(question: InterviewQuestion, optionId: string) {
-    setAnswers((current) => ({
-      ...current,
+    const nextAnswers = {
+      ...answers,
       [question.id]: optionId,
-    }))
+    }
 
-    if (currentQuestionIndex < interviewQuestions.length - 1) {
+    setAnswers(nextAnswers)
+
+    if (interviewQuestions.every((item) => Boolean(nextAnswers[item.id]))) {
+      setOnboardingStep('match')
+    } else if (currentQuestionIndex < interviewQuestions.length - 1) {
       setCurrentQuestionIndex((current) => current + 1)
     }
   }
 
   function handleInterviewStart() {
+    setOnboardingStep('interview')
     setIsInterviewOpen(true)
     if (interviewState === 'idle') {
       setInterviewState('loading')
@@ -277,6 +291,7 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
       const data = (await res.json()) as JobSearchResponse
       setJobPositions(data.jobs)
       setJobSearchState('ready')
+      setOnboardingStep('roadmap')
     } catch {
       setJobSearchState('error')
     }
@@ -290,6 +305,12 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
       setAnswers({})
       setNotes({})
       setCurrentQuestionIndex(0)
+      setJobSearchState('idle')
+      setJobPositions([])
+      setLatestRoadmap(null)
+      setRoadmapState('idle')
+      setRoadmapMessage('')
+      setOnboardingStep('interview')
     }
   }
 
@@ -460,118 +481,35 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
       </nav>
 
       <div className="assessment-content">
-        {isInterviewComplete && (
-          <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
-          <div className="section-heading builder-heading">
-            <div>
-              <p className="eyebrow">Personalized roadmap</p>
-              <h2 id="roadmap-builder-title">Build from your CV and interview answers</h2>
-            </div>
-            {latestRoadmap && (
-              <span className="saved-roadmap-pill">
-                Saved {new Date(latestRoadmap.created_at).toLocaleDateString()}
-              </span>
-            )}
+        <section className="hero-panel">
+          <div>
+            <p className="eyebrow">Pathway to {targetRole || dashboard.target_role}</p>
+            <h1>{dashboard.readiness_score}% market ready</h1>
+            <p className="hero-copy">
+              Turn academic projects into a hiring playbook with focused hard-skill
+              and soft-skill milestones.
+            </p>
           </div>
-
-          <div className="builder-grid">
-            <label>
-              Email
-              <input
-                type="email"
-                value={email}
-                onChange={(event) => handleEmailChange(event.target.value)}
-                placeholder="you@example.com"
-              />
-            </label>
-            <label>
-              Name
-              <input
-                type="text"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Optional"
-              />
-            </label>
-            <label>
-              Target role
-              <input
-                type="text"
-                value={targetRole}
-                onChange={(event) => handleTargetRoleChange(event.target.value)}
-                placeholder="Junior Backend Engineer"
-              />
-            </label>
+          <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
+            <span>{dashboard.readiness_score}%</span>
           </div>
-
-          <div className="builder-status-grid">
-            <span className={isEmailReady(email) ? 'ready' : ''}>Email</span>
-            <span className={extractedCv?.text.trim() ? 'ready' : ''}>CV extracted</span>
-            <span className={isInterviewComplete ? 'ready' : ''}>Interview complete</span>
-            <span className={targetRole.trim().length > 1 ? 'ready' : ''}>Target role</span>
-          </div>
-
-          <div className="builder-actions">
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                type="button"
-                className="generate-button"
-                onClick={handleGenerateRoadmap}
-                disabled={!canGenerateRoadmap}
-              >
-                {roadmapState === 'saving' ? (
-                  <>
-                    <Loader2 size={18} className="spin" />
-                    Generating roadmap
-                  </>
-                ) : (
-                  <>
-                    <Sparkles size={18} />
-                    Generate roadmap
-                  </>
-                )}
-              </button>
-              {latestRoadmap && (
-                <button
-                  type="button"
-                  className="action-button secondary"
-                  onClick={() => setIsRoadmapDialogOpen(true)}
-                >
-                  View roadmap
-                </button>
-              )}
-              {latestRoadmap?.detailed_roadmap && (
-                <button
-                  type="button"
-                  className="action-button secondary"
-                  onClick={onOpenRoadmap}
-                >
-                  Open detailed roadmap
-                </button>
-              )}
-            </div>
-            {roadmapMessage && (
-              <p className={`roadmap-message ${roadmapState === 'error' ? 'error' : ''}`}>
-                {roadmapMessage}
-              </p>
-            )}
-          </div>
-          </section>
-        )}
-
-        <section className="actions-grid" style={{ gridTemplateColumns: '1fr' }}>
-          <button
-            type="button"
-            className="action-button"
-            onClick={() => setIsUploadOpen((value) => !value)}
-            aria-expanded={isUploadOpen}
-          >
-            <FileUp size={18} />
-            Upload CV
-          </button>
         </section>
 
-        {isUploadOpen && (
+        <section className="onboarding-progress" aria-label="Onboarding progress">
+          {onboardingSteps.map((step, index) => (
+            <span
+              key={step.id}
+              className={`${step.id === onboardingStep ? 'active' : ''} ${
+                index < activeStepIndex ? 'complete' : ''
+              }`}
+            >
+              {index < activeStepIndex ? <Check size={16} /> : <span>{index + 1}</span>}
+              {step.label}
+            </span>
+          ))}
+        </section>
+
+        {onboardingStep === 'upload' && (
           <UploadCv
             onExtract={setExtractedCv}
             onClear={() => setExtractedCv(null)}
@@ -579,8 +517,151 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
           />
         )}
 
+        {onboardingStep === 'roadmap' && (
+          <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
+            <div className="section-heading builder-heading">
+              <div>
+                <p className="eyebrow">Personalized roadmap</p>
+                <h2 id="roadmap-builder-title">Build from your CV and interview answers</h2>
+              </div>
+              {latestRoadmap && (
+                <span className="saved-roadmap-pill">
+                  Saved {new Date(latestRoadmap.created_at).toLocaleDateString()}
+                </span>
+              )}
+            </div>
 
-        {isInterviewOpen && (
+            {jobSearchState === 'ready' && jobPositions.length > 0 && (
+              <div className="selected-jobs-panel">
+                <div className="selected-jobs-strip">
+                  <span>{Math.min(jobPositions.length, 5)} latest matched roles</span>
+                  <strong>{jobPositions.length} total found</strong>
+                </div>
+                <ol className="compact-job-list">
+                  {jobPositions.slice(0, 5).map((job, index) => (
+                    <li key={`${job.title}-${job.company ?? 'company'}-${index}`} className="compact-job-card">
+                      <div className="compact-job-main">
+                        <span className="job-number">#{index + 1}</span>
+                        <div>
+                          <h3>{job.title}</h3>
+                          <p>
+                            {job.company ?? 'Company not listed'}
+                            <span>{job.salary}</span>
+                          </p>
+                        </div>
+                      </div>
+                      <p className="compact-job-description">{job.description}</p>
+                      <div className="compact-job-footer">
+                        <div className="job-keywords">
+                          {job.keywords.slice(0, 4).map((keyword) => (
+                            <span key={keyword}>{keyword}</span>
+                          ))}
+                        </div>
+                        {job.url && (
+                          <a href={job.url} target="_blank" rel="noopener noreferrer">
+                            {job.site_name ?? 'View role'}
+                          </a>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
+            <div className="builder-grid">
+              <label>
+                Email
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => handleEmailChange(event.target.value)}
+                  placeholder="you@example.com"
+                />
+              </label>
+              <label>
+                Name
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Optional"
+                />
+              </label>
+              <label>
+                Target role
+                <input
+                  type="text"
+                  value={targetRole}
+                  onChange={(event) => handleTargetRoleChange(event.target.value)}
+                  placeholder="Junior Backend Engineer"
+                />
+              </label>
+            </div>
+
+            <div className="builder-status-grid">
+              <span className={isEmailReady(email) ? 'ready' : ''}>Email</span>
+              <span className={extractedCv?.text.trim() ? 'ready' : ''}>CV extracted</span>
+              <span className={isInterviewComplete ? 'ready' : ''}>Interview complete</span>
+              <span className={targetRole.trim().length > 1 ? 'ready' : ''}>Target role</span>
+            </div>
+
+            <div className="builder-actions">
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="generate-button"
+                  onClick={handleGenerateRoadmap}
+                  disabled={!canGenerateRoadmap}
+                >
+                  {roadmapState === 'saving' ? (
+                    <>
+                      <Loader2 size={18} className="spin" />
+                      Generating roadmap
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Generate roadmap
+                    </>
+                  )}
+                </button>
+                {latestRoadmap && (
+                  <button
+                    type="button"
+                    className="action-button secondary"
+                    onClick={() => setIsRoadmapDialogOpen(true)}
+                  >
+                    View roadmap
+                  </button>
+                )}
+                {latestRoadmap?.detailed_roadmap && (
+                  <button
+                    type="button"
+                    className="action-button secondary"
+                    onClick={onOpenRoadmap}
+                  >
+                    Open detailed roadmap
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="action-button secondary"
+                  onClick={() => setOnboardingStep('match')}
+                >
+                  Back to matches
+                </button>
+              </div>
+              {roadmapMessage && (
+                <p className={`roadmap-message ${roadmapState === 'error' ? 'error' : ''}`}>
+                  {roadmapMessage}
+                </p>
+              )}
+            </div>
+          </section>
+        )}
+
+        {onboardingStep === 'interview' && (
           <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">
             <div className="section-heading interview-heading">
               <div>
@@ -590,127 +671,28 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
               <div
                 className="interview-score"
                 aria-label={
-                  isInterviewComplete
-                    ? `${interviewScore}% black box score`
-                    : `${answeredCount} of ${interviewQuestions.length} questions answered`
+                  isInterviewAnalyzing
+                    ? 'Analyzing interview data'
+                    : isInterviewComplete
+                      ? `${interviewScore}% black box score`
+                      : `${answeredCount} of ${interviewQuestions.length} questions answered`
                 }
               >
                 <Target size={18} />
                 <span>
-                  {isInterviewComplete
-                    ? `${interviewScore}%`
-                    : `${answeredCount}/${interviewQuestions.length}`}
+                  {isInterviewAnalyzing
+                    ? 'Analyzing...'
+                    : isInterviewComplete
+                      ? `${interviewScore}%`
+                      : `${answeredCount}/${interviewQuestions.length}`}
                 </span>
               </div>
             </div>
 
-            {isInterviewComplete && (
-              <>
-                <div className="skill-match-panel">
-                  <div>
-                    <p className="eyebrow">Role-matched soft skills</p>
-                    <h3>{microInterview.fit_title}</h3>
-                    <p>{microInterview.completion_copy}</p>
-                  </div>
-                  <div className="skill-tags">
-                    {interviewQuestions.map((question) => {
-                      const selected = getSelectedOption(question, answers[question.id])
-
-                      return (
-                        <span key={question.id} className="skill-tag">
-                          {question.skill}
-                          <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Job positions section */}
-                <div className="job-positions-section">
-                  <div className="section-heading">
-                    <div>
-                      <p className="eyebrow">Matched opportunities</p>
-                      <h2>Jobs matching your profile</h2>
-                    </div>
-                    {jobSearchState === 'loading' && (
-                      <div className="jobs-loading">
-                        <Loader2 size={20} className="spin" />
-                        <span>Finding roles…</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {jobSearchState === 'idle' && (
-                    <div className="builder-actions">
-                      <button
-                        type="button"
-                        className="generate-button"
-                        onClick={handleJobSearch}
-                      >
-                        <Sparkles size={18} />
-                        Find job positions
-                      </button>
-                    </div>
-                  )}
-
-                  {jobSearchState === 'error' && (
-                    <div className="job-error-row">
-                      <p className="roadmap-message error">Could not load job listings. Please try again.</p>
-                      <button
-                        type="button"
-                        className="action-button secondary"
-                        onClick={handleJobSearch}
-                      >
-                        Try again
-                      </button>
-                    </div>
-                  )}
-
-                  {jobSearchState === 'ready' && (
-                    <ol className="job-cards-list">
-                      {jobPositions.map((job, i) => (
-                        <li key={i} className="job-card">
-                          <div className="job-card-header">
-                            <div>
-                              <h3 className="job-title">{job.title}</h3>
-                              {job.company && (
-                                <p className="job-company">{job.company}</p>
-                              )}
-                              <span className="job-salary">{job.salary}</span>
-                            </div>
-                            <span className="job-number">#{i + 1}</span>
-                          </div>
-                          <p className="job-description">{job.description}</p>
-                          <div className="job-card-footer">
-                            <div className="job-keywords">
-                              {job.keywords.map((kw) => (
-                                <span key={kw} className="job-keyword">{kw}</span>
-                              ))}
-                            </div>
-                            {job.url && (
-                              <a
-                                href={job.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="job-site-link"
-                              >
-                                {job.site_name ?? new URL(job.url).hostname}
-                              </a>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ol>
-                  )}
-                </div>
-              </>
-            )}
-
             {interviewState === 'loading' && (
               <div className="questions-list">
                 <article className="question-card">
-                  <p className="question-prompt">Loading micro-interview questions...</p>
+                  <p className="question-prompt">Analyzing...</p>
                 </article>
               </div>
             )}
@@ -774,50 +756,20 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
               </div>
             )}
 
-            {isInterviewComplete && (
-              <div className="questions-list">
-                {interviewQuestions.map((question) => {
-                  const selected = getSelectedOption(question, answers[question.id])
-
-                  if (!selected) {
-                    return null
-                  }
-
-                  return (
-                    <article key={question.id} className="result-card">
-                      <div className="question-header">
-                        <div>
-                          <p className="track">{question.weight}% weight</p>
-                          <h3>{question.skill}</h3>
-                        </div>
-                        <span className="black-box-score">
-                          <Sparkles size={16} />
-                          {selected.match}% match
-                        </span>
-                      </div>
-                      <div className="star-grid" aria-label={`${question.skill} STAR score breakdown`}>
-                        <span>Situation {selected.star.situation}%</span>
-                        <span>Task {selected.star.task}%</span>
-                        <span>Action {selected.star.action}%</span>
-                        <span>Result {selected.star.result}%</span>
-                        <span>Average {averageStar(selected.star)}%</span>
-                      </div>
-                    </article>
-                  )
-                })}
-              </div>
-            )}
-
             <div className="interview-summary">
               <div>
                 <p className="eyebrow">Current signal</p>
                 <h3>
                   {isInterviewComplete
                     ? `${strongestSkill?.skill ?? 'Soft-skill fit'} is strongest so far`
-                    : `${answeredCount} of ${interviewQuestions.length} answered`}
+                    : isInterviewAnalyzing
+                      ? 'Analyzing...'
+                      : `${answeredCount} of ${interviewQuestions.length} answered`}
                 </h3>
                 <p>
-                  {isInterviewComplete
+                  {isInterviewAnalyzing
+                    ? 'Preparing role-specific interview questions from the available profile data.'
+                    : isInterviewComplete
                     ? 'Use the selected STAR pattern as the first-pass score, then calibrate with the written answer notes.'
                     : microInterview.incomplete_copy}
                 </p>
@@ -825,6 +777,108 @@ export function AssessmentPage({ onBack, onOpenRoadmap }: AssessmentPageProps) {
               <button type="button" className="start-button" aria-label="Complete micro-interview">
                 <Check size={18} />
               </button>
+            </div>
+          </section>
+        )}
+
+        {onboardingStep === 'match' && (
+          <section className="micro-interview" aria-labelledby="skill-match-title">
+            <div className="section-heading interview-heading">
+              <div>
+                <p className="eyebrow">Role-matched soft skills</p>
+                <h2 id="skill-match-title">{microInterview.fit_title}</h2>
+              </div>
+              <div className="interview-score" aria-label={`${interviewScore}% black box score`}>
+                <Target size={18} />
+                <span>{interviewScore}%</span>
+              </div>
+            </div>
+
+            <div className="skill-match-panel">
+              <div>
+                <p className="eyebrow">Skill match</p>
+                <h3>{strongestSkill?.skill ?? 'Soft-skill fit'} is strongest</h3>
+                <p>{microInterview.completion_copy}</p>
+              </div>
+              <div className="skill-tags">
+                {interviewQuestions.map((question) => {
+                  const selected = getSelectedOption(question, answers[question.id])
+
+                  return (
+                    <span key={question.id} className="skill-tag">
+                      {question.skill}
+                      <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="questions-list">
+              {interviewQuestions.map((question) => {
+                const selected = getSelectedOption(question, answers[question.id])
+
+                if (!selected) {
+                  return null
+                }
+
+                return (
+                  <article key={question.id} className="result-card">
+                    <div className="question-header">
+                      <div>
+                        <p className="track">{question.weight}% weight</p>
+                        <h3>{question.skill}</h3>
+                      </div>
+                      <span className="black-box-score">
+                        <Sparkles size={16} />
+                        {selected.match}% match
+                      </span>
+                    </div>
+                    <div className="star-grid" aria-label={`${question.skill} STAR score breakdown`}>
+                      <span>Situation {selected.star.situation}%</span>
+                      <span>Task {selected.star.task}%</span>
+                      <span>Action {selected.star.action}%</span>
+                      <span>Result {selected.star.result}%</span>
+                      <span>Average {averageStar(selected.star)}%</span>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+
+            <div className="builder-actions">
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="generate-button"
+                  onClick={handleJobSearch}
+                  disabled={jobSearchState === 'loading'}
+                >
+                  {jobSearchState === 'loading' ? (
+                    <>
+                      <Loader2 size={18} className="spin" />
+                      Finding roles
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={18} />
+                      Find job positions
+                    </>
+                  )}
+                </button>
+                {jobSearchState === 'ready' && (
+                  <button
+                    type="button"
+                    className="action-button secondary"
+                    onClick={() => setOnboardingStep('roadmap')}
+                  >
+                    Continue to roadmap
+                  </button>
+                )}
+              </div>
+              {jobSearchState === 'error' && (
+                <p className="roadmap-message error">Could not load job listings. Please try again.</p>
+              )}
             </div>
           </section>
         )}
