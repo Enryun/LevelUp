@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from openai import AuthenticationError, OpenAIError
 
 from app.config import settings
+from app.course_search import suggest_courses
 from app.cv_parser import extract_pdf_text
 from app.database import get_latest_roadmap, init_db
 from app.job_search import search_jobs
@@ -15,6 +16,8 @@ from app.roadmap_agent import generate_and_save_roadmap
 from app.schemas import (
     ChatRequest,
     ChatResponse,
+    CourseSearchRequest,
+    CourseSearchResponse,
     CvTextResponse,
     Dashboard,
     JobSearchRequest,
@@ -227,3 +230,21 @@ async def job_search(request: JobSearchRequest) -> JobSearchResponse:
         return await search_jobs(request.target_role)
     except RuntimeError as error:
         raise HTTPException(status_code=503, detail=str(error)) from error
+
+
+@app.post("/api/courses/search", response_model=CourseSearchResponse)
+async def course_search(request: CourseSearchRequest) -> CourseSearchResponse:
+    try:
+        return await suggest_courses(request.keyword, request.target_role)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except AuthenticationError as error:
+        raise HTTPException(
+            status_code=401,
+            detail="OpenAI authentication failed. Check OPENAI_API_KEY.",
+        ) from error
+    except OpenAIError as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI request failed: {error.__class__.__name__}",
+        ) from error

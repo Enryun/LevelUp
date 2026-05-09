@@ -1,4 +1,6 @@
-import { ArrowLeft, Check, CircleDot, Clock, FolderGit2, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowLeft, Check, CircleDot, Clock, ExternalLink, FolderGit2, Loader2, Sparkles } from 'lucide-react'
+import { apiUrl } from '../../config'
 import './RoadmapGraphPage.css'
 
 type DetailedRoadmapNode = {
@@ -43,6 +45,20 @@ type RoadmapGraphPageProps = {
   onBack: () => void
 }
 
+type CourseSuggestion = {
+  title: string
+  channel: string | null
+  url: string
+  summary: string
+  why_relevant: string
+}
+
+type CourseSearchState = {
+  status: 'idle' | 'loading' | 'ready' | 'error'
+  courses: CourseSuggestion[]
+  message?: string
+}
+
 const ROADMAP_SESSION_KEY = 'levelup.latestRoadmap'
 
 function loadRoadmap(): RoadmapResponse | null {
@@ -66,6 +82,52 @@ function formatCategory(category: string) {
 export function RoadmapGraphPage({ onBack }: RoadmapGraphPageProps) {
   const roadmap = loadRoadmap()
   const detailedRoadmap = roadmap?.detailed_roadmap
+  const [courseSearches, setCourseSearches] = useState<Record<string, CourseSearchState>>({})
+
+  async function handleCourseSearch(keyword: string) {
+    const key = keyword.trim().toLowerCase()
+    const cached = courseSearches[key]
+
+    if (cached?.status === 'loading' || cached?.status === 'ready') {
+      return
+    }
+
+    setCourseSearches((current) => ({
+      ...current,
+      [key]: { status: 'loading', courses: [] },
+    }))
+
+    try {
+      const response = await fetch(apiUrl('/api/courses/search'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          keyword,
+          target_role: roadmap?.target_role ?? null,
+        }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.detail ?? 'Course search failed.')
+      }
+
+      const data = (await response.json()) as { courses: CourseSuggestion[] }
+      setCourseSearches((current) => ({
+        ...current,
+        [key]: { status: 'ready', courses: data.courses },
+      }))
+    } catch (error) {
+      setCourseSearches((current) => ({
+        ...current,
+        [key]: {
+          status: 'error',
+          courses: [],
+          message: error instanceof Error ? error.message : 'Course search failed.',
+        },
+      }))
+    }
+  }
 
   if (!roadmap || !detailedRoadmap) {
     return (
@@ -93,10 +155,6 @@ export function RoadmapGraphPage({ onBack }: RoadmapGraphPageProps) {
           <ArrowLeft size={18} />
           Assessment
         </button>
-        <div className="graph-score">
-          <span>{roadmap.readiness_score}%</span>
-          market ready
-        </div>
       </header>
 
       <section className="graph-intro">
@@ -133,9 +191,47 @@ export function RoadmapGraphPage({ onBack }: RoadmapGraphPageProps) {
                     <Clock size={15} />
                     {node.estimated_time}
                   </div>
-                  <ul>
+                  <ul className="node-task-list">
                     {node.tasks.map((task) => (
-                      <li key={task}>{task}</li>
+                      <li key={task}>
+                        <div className="task-row">
+                          <span>{task}</span>
+                          <button type="button" onClick={() => handleCourseSearch(task)}>
+                            <Sparkles size={14} />
+                            Courses
+                          </button>
+                        </div>
+                        {courseSearches[task.trim().toLowerCase()]?.status === 'loading' && (
+                          <div className="course-suggestions loading">
+                            <Loader2 size={15} className="spin" />
+                            Finding free YouTube courses...
+                          </div>
+                        )}
+                        {courseSearches[task.trim().toLowerCase()]?.status === 'error' && (
+                          <div className="course-suggestions error">
+                            {courseSearches[task.trim().toLowerCase()].message}
+                          </div>
+                        )}
+                        {courseSearches[task.trim().toLowerCase()]?.status === 'ready' && (
+                          <div className="course-suggestions">
+                            {courseSearches[task.trim().toLowerCase()].courses.length > 0 ? (
+                              courseSearches[task.trim().toLowerCase()].courses.map((course) => (
+                                <a key={course.url} href={course.url} target="_blank" rel="noopener noreferrer">
+                                  <div>
+                                    <strong>{course.title}</strong>
+                                    {course.channel && <span>{course.channel}</span>}
+                                  </div>
+                                  <p>{course.summary}</p>
+                                  <small>{course.why_relevant}</small>
+                                  <ExternalLink size={14} />
+                                </a>
+                              ))
+                            ) : (
+                              <p>No free YouTube courses found for this item.</p>
+                            )}
+                          </div>
+                        )}
+                      </li>
                     ))}
                   </ul>
                   {node.resources.length > 0 && (
