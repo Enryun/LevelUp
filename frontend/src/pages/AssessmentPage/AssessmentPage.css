@@ -8,10 +8,16 @@
     linear-gradient(180deg, #fbfaf7 0%, #fff6df 42%, #fbfaf7 100%);
 }
 
-.assessment-page > * {
+.assessment-page .topbar,
+.assessment-page .assessment-content {
   width: min(1120px, calc(100% - 40px));
   margin-left: auto;
   margin-right: auto;
+}
+
+.assessment-page .assessment-content {
+  display: grid;
+  gap: 20px;
 }
 
 .assessment-page .topbar,
@@ -145,8 +151,7 @@
 
 .assessment-page .actions-grid {
   gap: 12px;
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 0;
 }
 
 .assessment-page button {
@@ -184,15 +189,24 @@
 }
 
 .assessment-page .next-action {
+  position: relative;
   justify-content: space-between;
-  gap: 18px;
-  margin: 0 0 28px;
-  padding: 24px;
+  gap: 24px;
+  overflow: hidden;
+  margin: 0;
+  padding: 30px 34px;
   border: 1px solid #e5ded3;
-  border-left: 6px solid #ffad31;
   border-radius: 24px;
   background: white;
   box-shadow: 0 18px 48px rgba(23, 30, 49, 0.08);
+}
+
+.assessment-page .next-action::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 7px;
+  background: #ffad31;
 }
 
 .assessment-page .next-action h2,
@@ -201,6 +215,10 @@
   color: #171e31;
   font-size: 24px;
   line-height: 1.2;
+}
+
+.assessment-page .next-action h2 {
+  max-width: 820px;
 }
 
 .assessment-page .start-button {
@@ -212,13 +230,13 @@
 }
 
 .assessment-page .roadmap-section {
-  padding-top: 10px;
+  padding-top: 24px;
 }
 
 .assessment-page .micro-interview {
   display: grid;
   gap: 18px;
-  margin: 0 0 28px;
+  margin: 0;
   padding: 24px;
   border: 1px solid #e5ded3;
   border-radius: 28px;

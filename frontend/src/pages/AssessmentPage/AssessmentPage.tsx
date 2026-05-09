@@ -393,46 +393,47 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
         <span className={`api-pill ${apiState}`}>{apiState}</span>
       </nav>
 
-      <section className="hero-panel">
-        <div>
-          <p className="eyebrow">Pathway to {dashboard.target_role}</p>
-          <h1>{dashboard.readiness_score}% market ready</h1>
-          <p className="hero-copy">
-            Turn academic projects into a hiring playbook with focused hard-skill
-            and soft-skill milestones.
-          </p>
-        </div>
-        <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
-          <span>{dashboard.readiness_score}%</span>
-        </div>
-      </section>
+      <div className="assessment-content">
+        <section className="hero-panel">
+          <div>
+            <p className="eyebrow">Pathway to {dashboard.target_role}</p>
+            <h1>{dashboard.readiness_score}% market ready</h1>
+            <p className="hero-copy">
+              Turn academic projects into a hiring playbook with focused hard-skill
+              and soft-skill milestones.
+            </p>
+          </div>
+          <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
+            <span>{dashboard.readiness_score}%</span>
+          </div>
+        </section>
 
-      <section className="actions-grid">
-        <button
-          type="button"
-          className="action-button"
-          onClick={() => setIsUploadOpen((value) => !value)}
-          aria-expanded={isUploadOpen}
-        >
-          <FileUp size={18} />
-          Upload CV
-        </button>
-        <button
-          type="button"
-          className={`action-button secondary ${isInterviewOpen ? 'active' : ''}`}
-          aria-expanded={isInterviewOpen}
-          aria-controls="micro-interview"
-          onClick={() => setIsInterviewOpen(true)}
-        >
-          {isInterviewOpen ? <Check size={18} /> : <MessageSquareText size={18} />}
-          {isInterviewOpen ? 'Micro-interview started' : 'Start micro-interview'}
-        </button>
-      </section>
+        <section className="actions-grid">
+          <button
+            type="button"
+            className="action-button"
+            onClick={() => setIsUploadOpen((value) => !value)}
+            aria-expanded={isUploadOpen}
+          >
+            <FileUp size={18} />
+            Upload CV
+          </button>
+          <button
+            type="button"
+            className={`action-button secondary ${isInterviewOpen ? 'active' : ''}`}
+            aria-expanded={isInterviewOpen}
+            aria-controls="micro-interview"
+            onClick={() => setIsInterviewOpen(true)}
+          >
+            {isInterviewOpen ? <Check size={18} /> : <MessageSquareText size={18} />}
+            {isInterviewOpen ? 'Micro-interview started' : 'Start micro-interview'}
+          </button>
+        </section>
 
-      {isUploadOpen && <UploadCv />}
+        {isUploadOpen && <UploadCv />}
 
-      {isInterviewOpen && (
-        <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">
+        {isInterviewOpen && (
+          <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">
           <div className="section-heading interview-heading">
             <div>
               <p className="eyebrow">Start micro-interview</p>
@@ -582,43 +583,44 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
               <Check size={18} />
             </button>
           </div>
+          </section>
+        )}
+
+        <section className="next-action">
+          <div>
+            <p className="eyebrow">Next action</p>
+            <h2>{dashboard.next_action}</h2>
+          </div>
+          <button type="button" className="start-button" aria-label="Start next action">
+            <Play size={18} fill="currentColor" />
+          </button>
         </section>
-      )}
 
-      <section className="next-action">
-        <div>
-          <p className="eyebrow">Next action</p>
-          <h2>{dashboard.next_action}</h2>
-        </div>
-        <button type="button" className="start-button" aria-label="Start next action">
-          <Play size={18} fill="currentColor" />
-        </button>
-      </section>
-
-      <section className="roadmap-section">
-        <div className="section-heading">
-          <p className="eyebrow">Dynamic roadmap</p>
-          <h2>Today&apos;s path</h2>
-        </div>
-        <ol className="roadmap">
-          {dashboard.roadmap.map((node) => (
-            <li key={node.id} className={`roadmap-node ${node.status}`}>
-              <span className="node-icon">
-                {node.status === 'done' ? <Check size={18} /> : <CircleDot size={18} />}
-              </span>
-              <div>
-                <p className="track">{node.track.replace('_', ' ')}</p>
-                <h3>{node.title}</h3>
-                <ul>
-                  {node.tasks.map((task) => (
-                    <li key={task}>{task}</li>
-                  ))}
-                </ul>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
+        <section className="roadmap-section">
+          <div className="section-heading">
+            <p className="eyebrow">Dynamic roadmap</p>
+            <h2>Today&apos;s path</h2>
+          </div>
+          <ol className="roadmap">
+            {dashboard.roadmap.map((node) => (
+              <li key={node.id} className={`roadmap-node ${node.status}`}>
+                <span className="node-icon">
+                  {node.status === 'done' ? <Check size={18} /> : <CircleDot size={18} />}
+                </span>
+                <div>
+                  <p className="track">{node.track.replace('_', ' ')}</p>
+                  <h3>{node.title}</h3>
+                  <ul>
+                    {node.tasks.map((task) => (
+                      <li key={task}>{task}</li>
+                    ))}
+                  </ul>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
     </main>
   )
 }
