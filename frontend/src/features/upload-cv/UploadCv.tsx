@@ -10,10 +10,15 @@ const maxFileSizeInBytes = 8 * 1024 * 1024
 
 type UploadState = 'idle' | 'selected' | 'analyzing' | 'ready'
 
-type CvExtractResponse = {
+export type CvExtractResponse = {
   filename: string
   text: string
   page_count: number
+}
+
+type UploadCvProps = {
+  onExtract?: (cv: CvExtractResponse) => void
+  onClear?: () => void
 }
 
 function formatFileSize(size: number) {
@@ -21,7 +26,7 @@ function formatFileSize(size: number) {
   return `${megabytes.toFixed(1)} MB`
 }
 
-export function UploadCv() {
+export function UploadCv({ onExtract, onClear }: UploadCvProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState('')
@@ -37,6 +42,7 @@ export function UploadCv() {
       setFile(null)
       setUploadState('idle')
       setExtractedCv(null)
+      onClear?.()
       setError('Please upload a PDF file.')
       return
     }
@@ -45,6 +51,7 @@ export function UploadCv() {
       setFile(null)
       setUploadState('idle')
       setExtractedCv(null)
+      onClear?.()
       setError('Please upload a CV smaller than 8 MB.')
       return
     }
@@ -52,6 +59,7 @@ export function UploadCv() {
     setFile(nextFile)
     setError('')
     setExtractedCv(null)
+    onClear?.()
     setUploadState('selected')
   }
 
@@ -91,6 +99,7 @@ export function UploadCv() {
       const payload = (await response.json()) as CvExtractResponse
 
       setExtractedCv(payload)
+      onExtract?.(payload)
       setUploadState('ready')
     } catch (error) {
       setUploadState('selected')

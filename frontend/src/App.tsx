@@ -13,7 +13,6 @@ function App() {
 
   function navigate(nextRoute: AppRoute) {
     const nextPath = nextRoute === 'assessment' ? '/assessment' : '/'
-
     window.history.pushState(null, '', nextPath)
     setRoute(nextRoute)
     window.scrollTo({ top: 0, behavior: 'smooth' })

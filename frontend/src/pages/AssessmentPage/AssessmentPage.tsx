@@ -4,6 +4,7 @@ import {
   Check,
   CircleDot,
   FileUp,
+  Loader2,
   MessageSquareText,
   Play,
   Route,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react'
 import { apiUrl } from '../../config'
 import { UploadCv } from '../../features/upload-cv/UploadCv'
+import type { CvExtractResponse } from '../../features/upload-cv/UploadCv'
 import './AssessmentPage.css'
 
 type RoadmapNode = {
@@ -27,6 +29,15 @@ type Dashboard = {
   readiness_score: number
   next_action: string
   roadmap: RoadmapNode[]
+}
+
+type RoadmapResponse = Dashboard & {
+  id: string
+  email: string
+  name: string | null
+  created_at: string
+  cv_summary: string
+  interview_summary: string
 }
 
 type StarBreakdown = {
@@ -51,6 +62,14 @@ type InterviewQuestion = {
   prompt: string
   why: string
   options: AnswerOption[]
+}
+
+type MicroInterview = {
+  job_position: string
+  fit_title: string
+  completion_copy: string
+  incomplete_copy: string
+  questions: InterviewQuestion[]
 }
 
 type AssessmentPageProps = {
@@ -86,227 +105,15 @@ const fallbackDashboard: Dashboard = {
   ],
 }
 
-const jobPosition = 'Frontend Engineer'
-
-const interviewQuestions: InterviewQuestion[] = [
-  {
-    id: 'problem-solving',
-    skill: 'Problem-solving',
-    weight: 25,
-    prompt:
-      'A production page is slow after a new component release. How would you explain what happened and what you did?',
-    why: 'Frontend engineers need to debug user-visible issues, isolate causes, and explain tradeoffs.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Names the bug and says you fixed it, but gives little context or outcome.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 45, result: 35 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Explains the page, your responsibility, the debugging steps, and a basic result.',
-        match: 65,
-        star: { situation: 70, task: 60, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Shows context, ownership, measured investigation, tradeoffs, and performance impact.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 95, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'communication',
-    skill: 'Communication',
-    weight: 20,
-    prompt:
-      'You need to explain a frontend technical decision to a product manager or designer. What would your answer include?',
-    why: 'Strong frontend work depends on clear written and verbal updates across technical and non-technical teammates.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Uses technical terms and focuses mainly on what you personally prefer.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 40, result: 35 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Explains the decision in plain language and mentions the user or delivery effect.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 65, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Adapts to the audience, compares options, checks understanding, and confirms next steps.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'collaboration',
-    skill: 'Collaboration',
-    weight: 15,
-    prompt:
-      'A designer and backend engineer disagree with your implementation approach. How do you move the work forward?',
-    why: 'Frontend engineers sit between design, product, backend, QA, and users.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Defends your approach and waits for someone else to decide.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 35, result: 45 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Listens to both sides, clarifies constraints, and proposes one compromise.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Frames a shared goal, uses evidence, documents a decision, and protects team momentum.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 95, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'ownership',
-    skill: 'Ownership',
-    weight: 15,
-    prompt:
-      'You discover an accessibility issue that was not part of your assigned ticket. What do you do?',
-    why: 'Good frontend ownership means caring about real user outcomes, not only assigned tasks.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Leaves it for later because it was outside the ticket.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 35, result: 45 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Flags it, estimates effort, and asks whether it should be included now.',
-        match: 65,
-        star: { situation: 65, task: 70, action: 65, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Assesses impact, communicates risk early, proposes a scoped fix, and follows through.',
-        match: 90,
-        star: { situation: 90, task: 90, action: 90, result: 90 },
-      },
-    ],
-  },
-  {
-    id: 'adaptability',
-    skill: 'Adaptability',
-    weight: 10,
-    prompt:
-      'Requirements change after you already built most of a feature. How do you respond?',
-    why: 'Frontend work changes quickly as teams learn from design reviews, user feedback, and technical constraints.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Says the change is frustrating and tries to keep the original plan.',
-        match: 40,
-        star: { situation: 45, task: 35, action: 40, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Clarifies what changed, updates the plan, and communicates the schedule impact.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 70, result: 60 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Finds reusable work, renegotiates scope, ships the highest-value path, and captures the lesson.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'feedback',
-    skill: 'Feedback mindset',
-    weight: 10,
-    prompt:
-      'A reviewer gives tough feedback on your React implementation. What would a strong response look like?',
-    why: 'Frontend engineers grow through code review, design critique, and repeated iteration.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Explains why your original approach was fine and changes only what is required.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 35, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Asks clarifying questions, applies the feedback, and checks the updated work.',
-        match: 65,
-        star: { situation: 60, task: 65, action: 70, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Turns critique into a better pattern, documents the learning, and improves future PRs.',
-        match: 90,
-        star: { situation: 85, task: 90, action: 90, result: 95 },
-      },
-    ],
-  },
-  {
-    id: 'empathy',
-    skill: 'Empathy/product thinking',
-    weight: 5,
-    prompt:
-      'User feedback shows that a polished UI is still confusing. How do you decide what to change?',
-    why: 'Frontend decisions should connect technical implementation to user comprehension and product value.',
-    options: [
-      {
-        id: 'a',
-        label: 'A',
-        summary: 'Keeps the visual design because the UI looks clean and matches the spec.',
-        match: 40,
-        star: { situation: 45, task: 40, action: 35, result: 40 },
-      },
-      {
-        id: 'b',
-        label: 'B',
-        summary: 'Reviews the feedback, adjusts copy or layout, and asks for another check.',
-        match: 65,
-        star: { situation: 65, task: 65, action: 65, result: 65 },
-      },
-      {
-        id: 'c',
-        label: 'C',
-        summary: 'Identifies the user goal, tests a simpler flow, measures understanding, and shares the tradeoff.',
-        match: 90,
-        star: { situation: 90, task: 85, action: 90, result: 95 },
-      },
-    ],
-  },
-]
+const fallbackMicroInterview: MicroInterview = {
+  job_position: 'Frontend Engineer',
+  fit_title: 'Frontend soft-skill fit',
+  completion_copy:
+    'STAR completeness and black box scoring are now available because every frontend interview question has been answered.',
+  incomplete_copy:
+    'Complete every question to reveal STAR breakdowns and the weighted frontend black box score.',
+  questions: [],
+}
 
 function getSelectedOption(question: InterviewQuestion, selectedId: string) {
   return question.options.find((option) => option.id === selectedId)
@@ -316,29 +123,50 @@ function averageStar(star: StarBreakdown) {
   return Math.round((star.situation + star.task + star.action + star.result) / 4)
 }
 
+function isEmailReady(email: string) {
+  const trimmed = email.trim()
+  return trimmed.includes('@') && trimmed.split('@')[1]?.includes('.')
+}
+
 export function AssessmentPage({ onBack }: AssessmentPageProps) {
   const [dashboard, setDashboard] = useState<Dashboard>(fallbackDashboard)
   const [apiState, setApiState] = useState<'loading' | 'connected' | 'offline'>('loading')
+  const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
+  const [targetRole, setTargetRole] = useState(fallbackDashboard.target_role)
   const [isUploadOpen, setIsUploadOpen] = useState(true)
+  const [extractedCv, setExtractedCv] = useState<CvExtractResponse | null>(null)
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [isInterviewOpen, setIsInterviewOpen] = useState(false)
+  const [interviewState, setInterviewState] = useState<'idle' | 'loading' | 'ready' | 'offline'>('idle')
+  const [microInterview, setMicroInterview] = useState<MicroInterview>(fallbackMicroInterview)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+  const [roadmapState, setRoadmapState] = useState<'idle' | 'saving' | 'ready' | 'error'>('idle')
+  const [roadmapMessage, setRoadmapMessage] = useState('')
+  const [latestRoadmap, setLatestRoadmap] = useState<RoadmapResponse | null>(null)
+  const interviewQuestions = microInterview.questions
+  const jobPosition = microInterview.job_position
 
   const answeredCount = useMemo(() => {
     return interviewQuestions.filter((question) => Boolean(answers[question.id])).length
-  }, [answers])
+  }, [answers, interviewQuestions])
 
-  const isInterviewComplete = answeredCount === interviewQuestions.length
+  const isInterviewComplete = interviewQuestions.length > 0 && answeredCount === interviewQuestions.length
 
   const interviewScore = useMemo(() => {
     const weightedTotal = interviewQuestions.reduce((total, question) => {
       const option = getSelectedOption(question, answers[question.id])
       return total + (option?.match ?? 0) * question.weight
     }, 0)
+    const totalWeight = interviewQuestions.reduce((total, question) => total + question.weight, 0)
 
-    return Math.round(weightedTotal / 100)
-  }, [answers])
+    if (totalWeight === 0) {
+      return 0
+    }
+
+    return Math.round(weightedTotal / totalWeight)
+  }, [answers, interviewQuestions])
 
   const strongestSkill = useMemo(() => {
     return interviewQuestions
@@ -347,9 +175,15 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
         score: getSelectedOption(question, answers[question.id])?.match ?? 0,
       }))
       .sort((left, right) => right.score - left.score)[0]
-  }, [answers])
+  }, [answers, interviewQuestions])
 
   const activeQuestion = interviewQuestions[currentQuestionIndex]
+  const canGenerateRoadmap =
+    isEmailReady(email) &&
+    targetRole.trim().length > 1 &&
+    Boolean(extractedCv?.text.trim()) &&
+    isInterviewComplete &&
+    roadmapState !== 'saving'
 
   function handleAnswerSelect(question: InterviewQuestion, optionId: string) {
     setAnswers((current) => ({
@@ -359,6 +193,91 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
 
     if (currentQuestionIndex < interviewQuestions.length - 1) {
       setCurrentQuestionIndex((current) => current + 1)
+    }
+  }
+
+  function handleInterviewStart() {
+    setIsInterviewOpen(true)
+    if (interviewState === 'idle') {
+      setInterviewState('loading')
+    }
+  }
+
+  function handleTargetRoleChange(nextRole: string) {
+    setTargetRole(nextRole)
+    if (isInterviewOpen) {
+      setInterviewState('idle')
+      setMicroInterview(fallbackMicroInterview)
+      setAnswers({})
+      setNotes({})
+      setCurrentQuestionIndex(0)
+    }
+  }
+
+  function handleEmailChange(nextEmail: string) {
+    setEmail(nextEmail)
+    if (!isEmailReady(nextEmail)) {
+      setLatestRoadmap(null)
+      setRoadmapMessage('')
+      setRoadmapState('idle')
+    }
+  }
+
+  async function handleGenerateRoadmap() {
+    if (!canGenerateRoadmap || !extractedCv) {
+      setRoadmapState('error')
+      setRoadmapMessage('Add an email, target role, extracted CV, and completed micro-interview first.')
+      return
+    }
+
+    setRoadmapState('saving')
+    setRoadmapMessage('')
+
+    const completedAnswers = interviewQuestions.flatMap((question) => {
+      const selected = getSelectedOption(question, answers[question.id])
+      if (!selected) {
+        return []
+      }
+      return {
+        question_id: question.id,
+        skill: question.skill,
+        prompt: question.prompt,
+        selected_option_id: selected.id,
+        selected_option_summary: selected.summary,
+        match: selected.match,
+        star: selected.star,
+        notes: notes[question.id]?.trim() || null,
+      }
+    })
+
+    try {
+      const response = await fetch(apiUrl('/api/roadmaps/generate'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          name,
+          target_role: targetRole,
+          cv: extractedCv,
+          interview_score: interviewScore,
+          answers: completedAnswers,
+        }),
+      })
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null)
+        throw new Error(payload?.detail ?? 'Roadmap generation failed.')
+      }
+
+      const generated = (await response.json()) as RoadmapResponse
+      setDashboard(generated)
+      setTargetRole(generated.target_role)
+      setLatestRoadmap(generated)
+      setRoadmapState('ready')
+      setRoadmapMessage('Generated and saved your latest roadmap.')
+    } catch (error) {
+      setRoadmapState('error')
+      setRoadmapMessage(error instanceof Error ? error.message : 'Roadmap generation failed.')
     }
   }
 
@@ -372,12 +291,77 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
       })
       .then((data: Dashboard) => {
         setDashboard(data)
+        setTargetRole(data.target_role)
         setApiState('connected')
       })
       .catch(() => {
         setApiState('offline')
       })
   }, [])
+
+  useEffect(() => {
+    if (!isInterviewOpen || interviewState !== 'loading') {
+      return
+    }
+
+    fetch(apiUrl(`/api/onboard-soft-skills/micro-interview?job_position=${encodeURIComponent(targetRole)}`))
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Micro-interview request failed')
+        }
+        return response.json()
+      })
+      .then((data: MicroInterview) => {
+        setMicroInterview(data)
+        setAnswers({})
+        setNotes({})
+        setCurrentQuestionIndex(0)
+        setInterviewState('ready')
+      })
+      .catch(() => {
+        setInterviewState('offline')
+      })
+  }, [interviewState, isInterviewOpen, targetRole])
+
+  useEffect(() => {
+    if (!isEmailReady(email)) {
+      return
+    }
+
+    const controller = new AbortController()
+    fetch(apiUrl(`/api/roadmaps/latest?email=${encodeURIComponent(email.trim().toLowerCase())}`), {
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (response.status === 404) {
+          return null
+        }
+        if (!response.ok) {
+          throw new Error('Latest roadmap request failed')
+        }
+        return response.json()
+      })
+      .then((data: RoadmapResponse | null) => {
+        if (!data) {
+          setLatestRoadmap(null)
+          return
+        }
+        setLatestRoadmap(data)
+        setDashboard(data)
+        setTargetRole(data.target_role)
+        setRoadmapState((current) => (current === 'saving' ? current : 'ready'))
+        setRoadmapMessage('Loaded the latest saved roadmap for this email.')
+      })
+      .catch((error) => {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          return
+        }
+        setRoadmapState((current) => (current === 'saving' ? current : 'error'))
+        setRoadmapMessage('Could not load the latest saved roadmap.')
+      })
+
+    return () => controller.abort()
+  }, [email])
 
   return (
     <main className="assessment-page">
@@ -396,7 +380,7 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
       <div className="assessment-content">
         <section className="hero-panel">
           <div>
-            <p className="eyebrow">Pathway to {dashboard.target_role}</p>
+            <p className="eyebrow">Pathway to {targetRole || dashboard.target_role}</p>
             <h1>{dashboard.readiness_score}% market ready</h1>
             <p className="hero-copy">
               Turn academic projects into a hiring playbook with focused hard-skill
@@ -405,6 +389,83 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
           </div>
           <div className="score-ring" aria-label={`${dashboard.readiness_score}% market ready`}>
             <span>{dashboard.readiness_score}%</span>
+          </div>
+        </section>
+
+        <section className="roadmap-builder" aria-labelledby="roadmap-builder-title">
+          <div className="section-heading builder-heading">
+            <div>
+              <p className="eyebrow">Personalized roadmap</p>
+              <h2 id="roadmap-builder-title">Build from your CV and interview answers</h2>
+            </div>
+            {latestRoadmap && (
+              <span className="saved-roadmap-pill">
+                Saved {new Date(latestRoadmap.created_at).toLocaleDateString()}
+              </span>
+            )}
+          </div>
+
+          <div className="builder-grid">
+            <label>
+              Email
+              <input
+                type="email"
+                value={email}
+                onChange={(event) => handleEmailChange(event.target.value)}
+                placeholder="you@example.com"
+              />
+            </label>
+            <label>
+              Name
+              <input
+                type="text"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Optional"
+              />
+            </label>
+            <label>
+              Target role
+              <input
+                type="text"
+                value={targetRole}
+                onChange={(event) => handleTargetRoleChange(event.target.value)}
+                placeholder="Junior Backend Engineer"
+              />
+            </label>
+          </div>
+
+          <div className="builder-status-grid">
+            <span className={isEmailReady(email) ? 'ready' : ''}>Email</span>
+            <span className={extractedCv?.text.trim() ? 'ready' : ''}>CV extracted</span>
+            <span className={isInterviewComplete ? 'ready' : ''}>Interview complete</span>
+            <span className={targetRole.trim().length > 1 ? 'ready' : ''}>Target role</span>
+          </div>
+
+          <div className="builder-actions">
+            <button
+              type="button"
+              className="generate-button"
+              onClick={handleGenerateRoadmap}
+              disabled={!canGenerateRoadmap}
+            >
+              {roadmapState === 'saving' ? (
+                <>
+                  <Loader2 size={18} className="spin" />
+                  Generating roadmap
+                </>
+              ) : (
+                <>
+                  <Sparkles size={18} />
+                  Generate roadmap
+                </>
+              )}
+            </button>
+            {roadmapMessage && (
+              <p className={`roadmap-message ${roadmapState === 'error' ? 'error' : ''}`}>
+                {roadmapMessage}
+              </p>
+            )}
           </div>
         </section>
 
@@ -423,166 +484,185 @@ export function AssessmentPage({ onBack }: AssessmentPageProps) {
             className={`action-button secondary ${isInterviewOpen ? 'active' : ''}`}
             aria-expanded={isInterviewOpen}
             aria-controls="micro-interview"
-            onClick={() => setIsInterviewOpen(true)}
+            onClick={handleInterviewStart}
           >
             {isInterviewOpen ? <Check size={18} /> : <MessageSquareText size={18} />}
             {isInterviewOpen ? 'Micro-interview started' : 'Start micro-interview'}
           </button>
         </section>
 
-        {isUploadOpen && <UploadCv />}
+        {isUploadOpen && (
+          <UploadCv
+            onExtract={setExtractedCv}
+            onClear={() => setExtractedCv(null)}
+          />
+        )}
 
         {isInterviewOpen && (
           <section id="micro-interview" className="micro-interview" aria-labelledby="micro-interview-title">
-          <div className="section-heading interview-heading">
-            <div>
-              <p className="eyebrow">Start micro-interview</p>
-              <h2 id="micro-interview-title">{jobPosition}</h2>
-            </div>
-            <div
-              className="interview-score"
-              aria-label={
-                isInterviewComplete
-                  ? `${interviewScore}% black box score`
-                  : `${answeredCount} of ${interviewQuestions.length} questions answered`
-              }
-            >
-              <Target size={18} />
-              <span>
-                {isInterviewComplete
-                  ? `${interviewScore}%`
-                  : `${answeredCount}/${interviewQuestions.length}`}
-              </span>
-            </div>
-          </div>
-
-          {isInterviewComplete && (
-            <div className="skill-match-panel">
+            <div className="section-heading interview-heading">
               <div>
-                <p className="eyebrow">Role-matched soft skills</p>
-                <h3>Frontend soft-skill fit</h3>
-                <p>
-                  STAR completeness and black box scoring are now available because
-                  every frontend interview question has been answered.
-                </p>
+                <p className="eyebrow">Start micro-interview</p>
+                <h2 id="micro-interview-title">{jobPosition}</h2>
               </div>
-              <div className="skill-tags">
+              <div
+                className="interview-score"
+                aria-label={
+                  isInterviewComplete
+                    ? `${interviewScore}% black box score`
+                    : `${answeredCount} of ${interviewQuestions.length} questions answered`
+                }
+              >
+                <Target size={18} />
+                <span>
+                  {isInterviewComplete
+                    ? `${interviewScore}%`
+                    : `${answeredCount}/${interviewQuestions.length}`}
+                </span>
+              </div>
+            </div>
+
+            {isInterviewComplete && (
+              <div className="skill-match-panel">
+                <div>
+                  <p className="eyebrow">Role-matched soft skills</p>
+                  <h3>{microInterview.fit_title}</h3>
+                  <p>{microInterview.completion_copy}</p>
+                </div>
+                <div className="skill-tags">
+                  {interviewQuestions.map((question) => {
+                    const selected = getSelectedOption(question, answers[question.id])
+
+                    return (
+                      <span key={question.id} className="skill-tag">
+                        {question.skill}
+                        <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {interviewState === 'loading' && (
+              <div className="questions-list">
+                <article className="question-card">
+                  <p className="question-prompt">Loading micro-interview questions...</p>
+                </article>
+              </div>
+            )}
+
+            {interviewState === 'offline' && (
+              <div className="questions-list">
+                <article className="question-card">
+                  <p className="question-prompt">Micro-interview questions are unavailable.</p>
+                  <p className="question-why">Check the backend connection and try starting the interview again.</p>
+                </article>
+              </div>
+            )}
+
+            {!isInterviewComplete && activeQuestion && (
+              <div className="questions-list">
+                <article className="question-card">
+                  <div className="question-header">
+                    <div>
+                      <p className="track">
+                        Question {currentQuestionIndex + 1} of {interviewQuestions.length} · {activeQuestion.weight}% weight
+                      </p>
+                      <h3>{activeQuestion.skill}</h3>
+                    </div>
+                  </div>
+                  <p className="question-prompt">{activeQuestion.prompt}</p>
+                  <p className="question-why">{activeQuestion.why}</p>
+
+                  <div className="answer-options" role="radiogroup" aria-label={`${activeQuestion.skill} answer options`}>
+                    {activeQuestion.options.map((option) => (
+                      <label
+                        key={option.id}
+                        className={`answer-option ${answers[activeQuestion.id] === option.id ? 'selected' : ''}`}
+                      >
+                        <input
+                          type="radio"
+                          name={activeQuestion.id}
+                          value={option.id}
+                          checked={answers[activeQuestion.id] === option.id}
+                          onChange={() => handleAnswerSelect(activeQuestion, option.id)}
+                        />
+                        <span className="option-label">{option.label}</span>
+                        <span>{option.summary}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <label className="open-answer">
+                    Open answer notes
+                    <textarea
+                      value={notes[activeQuestion.id] ?? ''}
+                      onChange={(event) =>
+                        setNotes((current) => ({
+                          ...current,
+                          [activeQuestion.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Write the candidate's real answer here, then choose the closest answer pattern above."
+                    />
+                  </label>
+                </article>
+              </div>
+            )}
+
+            {isInterviewComplete && (
+              <div className="questions-list">
                 {interviewQuestions.map((question) => {
                   const selected = getSelectedOption(question, answers[question.id])
 
+                  if (!selected) {
+                    return null
+                  }
+
                   return (
-                    <span key={question.id} className="skill-tag">
-                      {question.skill}
-                      <strong>{selected ? `${selected.match}%` : 'Pending'}</strong>
-                    </span>
+                    <article key={question.id} className="result-card">
+                      <div className="question-header">
+                        <div>
+                          <p className="track">{question.weight}% weight</p>
+                          <h3>{question.skill}</h3>
+                        </div>
+                        <span className="black-box-score">
+                          <Sparkles size={16} />
+                          {selected.match}% match
+                        </span>
+                      </div>
+                      <div className="star-grid" aria-label={`${question.skill} STAR score breakdown`}>
+                        <span>Situation {selected.star.situation}%</span>
+                        <span>Task {selected.star.task}%</span>
+                        <span>Action {selected.star.action}%</span>
+                        <span>Result {selected.star.result}%</span>
+                        <span>Average {averageStar(selected.star)}%</span>
+                      </div>
+                    </article>
                   )
                 })}
               </div>
+            )}
+
+            <div className="interview-summary">
+              <div>
+                <p className="eyebrow">Current signal</p>
+                <h3>
+                  {isInterviewComplete
+                    ? `${strongestSkill?.skill ?? 'Soft-skill fit'} is strongest so far`
+                    : `${answeredCount} of ${interviewQuestions.length} answered`}
+                </h3>
+                <p>
+                  {isInterviewComplete
+                    ? 'Use the selected STAR pattern as the first-pass score, then calibrate with the written answer notes.'
+                    : microInterview.incomplete_copy}
+                </p>
+              </div>
+              <button type="button" className="start-button" aria-label="Complete micro-interview">
+                <Check size={18} />
+              </button>
             </div>
-          )}
-
-          {!isInterviewComplete && (
-            <div className="questions-list">
-              <article className="question-card">
-                <div className="question-header">
-                  <div>
-                    <p className="track">
-                      Question {currentQuestionIndex + 1} of {interviewQuestions.length} &middot; {activeQuestion.weight}% weight
-                    </p>
-                    <h3>{activeQuestion.skill}</h3>
-                  </div>
-                </div>
-                <p className="question-prompt">{activeQuestion.prompt}</p>
-                <p className="question-why">{activeQuestion.why}</p>
-
-                <div className="answer-options" role="radiogroup" aria-label={`${activeQuestion.skill} answer options`}>
-                  {activeQuestion.options.map((option) => (
-                    <label
-                      key={option.id}
-                      className={`answer-option ${answers[activeQuestion.id] === option.id ? 'selected' : ''}`}
-                    >
-                      <input
-                        type="radio"
-                        name={activeQuestion.id}
-                        value={option.id}
-                        checked={answers[activeQuestion.id] === option.id}
-                        onChange={() => handleAnswerSelect(activeQuestion, option.id)}
-                      />
-                      <span className="option-label">{option.label}</span>
-                      <span>{option.summary}</span>
-                    </label>
-                  ))}
-                </div>
-
-                <label className="open-answer">
-                  Open answer notes
-                  <textarea
-                    value={notes[activeQuestion.id] ?? ''}
-                    onChange={(event) =>
-                      setNotes((current) => ({
-                        ...current,
-                        [activeQuestion.id]: event.target.value,
-                      }))
-                    }
-                    placeholder="Write the candidate's real answer here, then choose the closest answer pattern above."
-                  />
-                </label>
-              </article>
-            </div>
-          )}
-
-          {isInterviewComplete && (
-            <div className="questions-list">
-              {interviewQuestions.map((question) => {
-                const selected = getSelectedOption(question, answers[question.id])
-
-                if (!selected) {
-                  return null
-                }
-
-                return (
-                  <article key={question.id} className="result-card">
-                    <div className="question-header">
-                      <div>
-                        <p className="track">{question.weight}% weight</p>
-                        <h3>{question.skill}</h3>
-                      </div>
-                      <span className="black-box-score">
-                        <Sparkles size={16} />
-                        {selected.match}% match
-                      </span>
-                    </div>
-                    <div className="star-grid" aria-label={`${question.skill} STAR score breakdown`}>
-                      <span>Situation {selected.star.situation}%</span>
-                      <span>Task {selected.star.task}%</span>
-                      <span>Action {selected.star.action}%</span>
-                      <span>Result {selected.star.result}%</span>
-                      <span>Average {averageStar(selected.star)}%</span>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-
-          <div className="interview-summary">
-            <div>
-              <p className="eyebrow">Current signal</p>
-              <h3>
-                {isInterviewComplete
-                  ? `${strongestSkill.skill} is strongest so far`
-                  : `${answeredCount} of ${interviewQuestions.length} answered`}
-              </h3>
-              <p>
-                {isInterviewComplete
-                  ? 'Use the selected STAR pattern as the first-pass score, then calibrate with the written answer notes.'
-                  : 'Complete every question to reveal STAR breakdowns and the weighted frontend black box score.'}
-              </p>
-            </div>
-            <button type="button" className="start-button" aria-label="Complete micro-interview">
-              <Check size={18} />
-            </button>
-          </div>
           </section>
         )}
 
