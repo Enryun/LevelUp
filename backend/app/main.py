@@ -1,3 +1,6 @@
+import importlib.util
+from pathlib import Path
+
 from pypdf.errors import PdfReadError
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +9,37 @@ from openai import AuthenticationError, OpenAIError
 from app.config import settings
 from app.cv_parser import extract_pdf_text
 from app.openai_agent import run_chat_agent
-from app.schemas import ChatRequest, ChatResponse, CvTextResponse, Dashboard, RoadmapNode
+from app.schemas import (
+    ChatRequest,
+    ChatResponse,
+    CvTextResponse,
+    Dashboard,
+    MicroInterview,
+    RoadmapNode,
+    SoftSkillsInterviewRequest,
+    SoftSkillsInterviewResponse,
+)
+
+
+def _load_soft_skills_module(module_name: str, filename: str):
+    module_path = Path(__file__).parent / "onboard-soft-skills" / filename
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load onboard-soft-skills module: {filename}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+generate_soft_skills_questions = _load_soft_skills_module(
+    "onboard_soft_skills_service",
+    "service.py",
+).generate_soft_skills_questions
+get_micro_interview = _load_soft_skills_module(
+    "onboard_soft_skills_interview_data",
+    "interview_data.py",
+).get_micro_interview
 
 
 app = FastAPI(title=settings.app_name)
@@ -103,3 +136,28 @@ async def extract_cv_text(file: UploadFile = File(...)) -> CvTextResponse:
         text=text,
         page_count=page_count,
     )
+
+
+@app.post("/api/onboard-soft-skills/questions", response_model=SoftSkillsInterviewResponse)
+async def onboard_soft_skills_questions(
+    request: SoftSkillsInterviewRequest,
+) -> SoftSkillsInterviewResponse:
+    try:
+        return await generate_soft_skills_questions(request)
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
+    except AuthenticationError as error:
+        raise HTTPException(
+            status_code=401,
+            detail="OpenAI authentication failed. Check OPENAI_API_KEY.",
+        ) from error
+    except OpenAIError as error:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI request failed: {error.__class__.__name__}",
+        ) from error
+
+
+@app.get("/api/onboard-soft-skills/micro-interview", response_model=MicroInterview)
+def onboard_soft_skills_micro_interview() -> MicroInterview:
+    return get_micro_interview()
