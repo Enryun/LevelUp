@@ -90,6 +90,7 @@ VITE_API_BASE_URL=http://localhost:8000
 After dependencies are installed:
 
 ```bash
+npm run dev
 npm run dev:backend
 npm run dev:frontend
 npm run build
