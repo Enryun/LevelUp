@@ -10,7 +10,7 @@
 
 .assessment-page .topbar,
 .assessment-page .assessment-content {
-  width: min(1120px, calc(100% - 40px));
+  width: calc(100% - 64px);
   margin-left: auto;
   margin-right: auto;
 }
@@ -25,6 +25,7 @@
 .assessment-page .back-button,
 .assessment-page .actions-grid,
 .assessment-page .action-button,
+.assessment-page .generate-button,
 .assessment-page .next-action,
 .assessment-page .start-button,
 .assessment-page .roadmap-node,
@@ -36,7 +37,14 @@
 .assessment-page .answer-option,
 .assessment-page .star-grid,
 .assessment-page .interview-summary,
-.assessment-page .skill-tag {
+.assessment-page .skill-tag,
+.assessment-page .onboarding-progress,
+.assessment-page .onboarding-progress > span,
+.assessment-page .button-row,
+.assessment-page .selected-jobs-strip,
+.assessment-page .compact-job-main,
+.assessment-page .compact-job-footer,
+.assessment-page .job-keywords {
   display: flex;
   align-items: center;
 }
@@ -154,6 +162,49 @@
   margin: 0;
 }
 
+.assessment-page .onboarding-progress {
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #e5ded3;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  overflow-x: auto;
+}
+
+.assessment-page .onboarding-progress > span {
+  gap: 8px;
+  min-height: 38px;
+  min-width: max-content;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #687080;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.assessment-page .onboarding-progress > span span,
+.assessment-page .onboarding-progress > span svg {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: inherit;
+  background: #f1eadf;
+}
+
+.assessment-page .onboarding-progress > span.active {
+  border-color: #ffd182;
+  color: #171e31;
+  background: #fff1dc;
+}
+
+.assessment-page .onboarding-progress > span.complete {
+  color: #7a4b00;
+}
+
 .assessment-page .roadmap-builder {
   display: grid;
   gap: 18px;
@@ -245,6 +296,127 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+}
+
+.assessment-page .button-row {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.assessment-page .selected-jobs-strip {
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #ffd182;
+  border-radius: 18px;
+  padding: 14px 16px;
+  color: #7a4b00;
+  background: #fff8ed;
+  font-weight: 800;
+}
+
+.assessment-page .selected-jobs-strip strong {
+  min-width: 0;
+  color: #171e31;
+  overflow-wrap: anywhere;
+}
+
+.assessment-page .selected-jobs-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.assessment-page .compact-job-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assessment-page .compact-job-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid #e5ded3;
+  border-radius: 18px;
+  padding: 16px;
+  background: #fbfaf7;
+}
+
+.assessment-page .compact-job-main {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.assessment-page .job-number {
+  min-width: 34px;
+  border-radius: 999px;
+  padding: 5px 8px;
+  color: #7a4b00;
+  background: #fff1dc;
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.assessment-page .compact-job-card h3 {
+  margin: 0;
+  color: #171e31;
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.assessment-page .compact-job-card p {
+  margin: 0;
+}
+
+.assessment-page .compact-job-main p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 5px;
+  color: #687080;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.assessment-page .compact-job-main p span {
+  color: #2a7d4f;
+}
+
+.assessment-page .compact-job-description {
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.assessment-page .compact-job-footer {
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.assessment-page .job-keywords {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.assessment-page .job-keywords span,
+.assessment-page .compact-job-footer a {
+  border: 1px solid #ffd182;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #5c3d00;
+  background: #fff8eb;
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.assessment-page .compact-job-footer a {
+  border-color: #e5ded3;
+  color: #171e31;
+  background: #ffffff;
 }
 
 .assessment-page .generate-button {
@@ -673,148 +845,6 @@
   border-bottom-color: #e5ded3;
 }
 
-/* ── Job Positions Section ─────────────────────────────────────────── */
-
-.assessment-page .job-positions-section {
-  display: grid;
-  gap: 24px;
-  padding: 32px;
-  border: 1px solid #e5ded3;
-  border-radius: 28px;
-  background: #fbfaf7;
-}
-
-.assessment-page .jobs-loading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #7a6a58;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.assessment-page .job-error-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.assessment-page .job-cards-list {
-  display: grid;
-  gap: 16px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.assessment-page .job-card {
-  display: grid;
-  gap: 12px;
-  padding: 24px;
-  border: 1px solid #e5ded3;
-  border-radius: 20px;
-  background: #fff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.assessment-page .job-card:hover {
-  border-color: #ffd182;
-  box-shadow: 0 4px 20px rgba(255, 173, 49, 0.10);
-}
-
-.assessment-page .job-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.assessment-page .job-title {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: #171e31;
-  margin: 0 0 4px;
-}
-
-.assessment-page .job-company {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #7a6a58;
-  margin: 0 0 6px;
-}
-
-.assessment-page .job-salary {
-  display: inline-block;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #2a7d4f;
-  background: #edf7f1;
-  border: 1px solid #b8e4cc;
-  border-radius: 999px;
-  padding: 2px 10px;
-}
-
-.assessment-page .job-number {
-  flex-shrink: 0;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #b0a090;
-  min-width: 32px;
-  text-align: right;
-}
-
-.assessment-page .job-description {
-  font-size: 0.9rem;
-  line-height: 1.65;
-  color: #4a4038;
-  margin: 0;
-}
-
-.assessment-page .job-keywords {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.assessment-page .job-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.assessment-page .job-site-link {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #7a6a58;
-  text-decoration: none;
-  white-space: nowrap;
-  padding: 4px 12px;
-  border: 1px solid #e5ded3;
-  border-radius: 999px;
-  background: #f7f4ef;
-  transition: border-color 0.18s, color 0.18s, background 0.18s;
-}
-
-.assessment-page .job-site-link:hover {
-  border-color: #ffd182;
-  color: #5c3d00;
-  background: #fff8eb;
-}
-
-.assessment-page .job-keyword {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: #5c3d00;
-  background: #fff8eb;
-  border: 1px solid #ffd182;
-  border-radius: 999px;
-  padding: 3px 10px;
-  letter-spacing: 0.01em;
-}
-
 .assessment-page .modal-overlay {
   position: fixed;
   inset: 0;
@@ -884,6 +914,11 @@
 }
 
 @media (max-width: 760px) {
+  .assessment-page .topbar,
+  .assessment-page .assessment-content {
+    width: calc(100% - 28px);
+  }
+
   .assessment-page .hero-panel {
     grid-template-columns: 1fr;
     padding: 28px;
@@ -898,6 +933,7 @@
   .assessment-page .actions-grid,
   .assessment-page .builder-actions,
   .assessment-page .builder-heading,
+  .assessment-page .selected-jobs-strip,
   .assessment-page .next-action,
   .assessment-page .interview-heading,
   .assessment-page .question-header,
@@ -913,6 +949,16 @@
   .assessment-page .builder-grid,
   .assessment-page .builder-status-grid {
     grid-template-columns: 1fr;
+  }
+
+  .assessment-page .onboarding-progress {
+    border-radius: 24px;
+    flex-wrap: wrap;
+  }
+
+  .assessment-page .button-row,
+  .assessment-page .button-row > button {
+    width: 100%;
   }
 
   .assessment-page .answer-option {
